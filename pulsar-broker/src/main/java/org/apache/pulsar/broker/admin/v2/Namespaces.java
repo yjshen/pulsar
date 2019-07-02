@@ -34,6 +34,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import io.swagger.annotations.*;
 import org.apache.pulsar.broker.admin.impl.NamespacesBase;
 import org.apache.pulsar.broker.web.RestException;
 import org.apache.pulsar.common.api.proto.PulsarApi.CommandGetTopicsOfNamespace.Mode;
@@ -51,11 +52,6 @@ import org.apache.pulsar.common.policies.data.SubscriptionAuthMode;
 import org.apache.pulsar.common.policies.data.SchemaAutoUpdateCompatibilityStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 
 @Path("/namespaces")
 @Produces(MediaType.APPLICATION_JSON)
@@ -630,9 +626,12 @@ public class Namespaces extends NamespacesBase {
     @ApiOperation(value = "Message encryption is required or not for all topics in a namespace")
     @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
             @ApiResponse(code = 404, message = "Tenant or cluster or namespace doesn't exist"),
-            @ApiResponse(code = 409, message = "Concurrent modification"), })
-    public void modifyEncryptionRequired(@PathParam("tenant") String tenant,
-            @PathParam("namespace") String namespace, boolean encryptionRequired) {
+            @ApiResponse(code = 409, message = "Concurrent modification"),
+            @ApiResponse(code = 412, message = "Namespace name is not valid")})
+    public void modifyEncryptionRequired(
+            @PathParam("tenant") String tenant,
+            @PathParam("namespace") String namespace,
+            @ApiParam(value = "If encryption is required") boolean encryptionRequired) {
         validateNamespaceName(tenant, namespace);
         internalModifyEncryptionRequired(encryptionRequired);
     }
@@ -641,8 +640,10 @@ public class Namespaces extends NamespacesBase {
     @Path("/{tenant}/{namespace}/maxProducersPerTopic")
     @ApiOperation(value = "Get maxProducersPerTopic config on a namespace.")
     @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
-            @ApiResponse(code = 404, message = "Namespace does not exist") })
-    public int getMaxProducersPerTopic(@PathParam("tenant") String tenant,
+            @ApiResponse(code = 404, message = "Namespace does not exist"),
+            @ApiResponse(code = 412, message = "Namespace name is not valid") })
+    public int getMaxProducersPerTopic(
+            @PathParam("tenant") String tenant,
             @PathParam("namespace") String namespace) {
         validateNamespaceName(tenant, namespace);
         return internalGetMaxProducersPerTopic();
@@ -654,9 +655,11 @@ public class Namespaces extends NamespacesBase {
     @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
             @ApiResponse(code = 404, message = "Namespace does not exist"),
             @ApiResponse(code = 409, message = "Concurrent modification"),
-            @ApiResponse(code = 412, message = "maxProducersPerTopic value is not valid") })
-    public void setMaxProducersPerTopic(@PathParam("tenant") String tenant, @PathParam("namespace") String namespace,
-            int maxProducersPerTopic) {
+            @ApiResponse(code = 412, message = "maxProducersPerTopic value is not valid or namespace name is not valid") })
+    public void setMaxProducersPerTopic(
+            @PathParam("tenant") String tenant,
+            @PathParam("namespace") String namespace,
+            @ApiParam(value = "max number of producer allowed per topic") int maxProducersPerTopic) {
         validateNamespaceName(tenant, namespace);
         internalSetMaxProducersPerTopic(maxProducersPerTopic);
     }
@@ -665,8 +668,10 @@ public class Namespaces extends NamespacesBase {
     @Path("/{tenant}/{namespace}/maxConsumersPerTopic")
     @ApiOperation(value = "Get maxConsumersPerTopic config on a namespace.")
     @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
-            @ApiResponse(code = 404, message = "Namespace does not exist") })
-    public int getMaxConsumersPerTopic(@PathParam("tenant") String tenant,
+            @ApiResponse(code = 404, message = "Namespace does not exist"),
+            @ApiResponse(code = 412, message = "Namespace name is not valid") })
+    public int getMaxConsumersPerTopic(
+            @PathParam("tenant") String tenant,
             @PathParam("namespace") String namespace) {
         validateNamespaceName(tenant, namespace);
         return internalGetMaxConsumersPerTopic();
@@ -678,9 +683,11 @@ public class Namespaces extends NamespacesBase {
     @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
             @ApiResponse(code = 404, message = "Namespace does not exist"),
             @ApiResponse(code = 409, message = "Concurrent modification"),
-            @ApiResponse(code = 412, message = "maxConsumersPerTopic value is not valid") })
-    public void setMaxConsumersPerTopic(@PathParam("tenant") String tenant, @PathParam("namespace") String namespace,
-            int maxConsumersPerTopic) {
+            @ApiResponse(code = 412, message = "maxConsumersPerTopic value is not valid or namespace name is not valid") })
+    public void setMaxConsumersPerTopic(
+            @PathParam("tenant") String tenant,
+            @PathParam("namespace") String namespace,
+            @ApiParam(value = "max number of consumer allowed per topic") int maxConsumersPerTopic) {
         validateNamespaceName(tenant, namespace);
         internalSetMaxConsumersPerTopic(maxConsumersPerTopic);
     }
@@ -689,8 +696,10 @@ public class Namespaces extends NamespacesBase {
     @Path("/{tenant}/{namespace}/maxConsumersPerSubscription")
     @ApiOperation(value = "Get maxConsumersPerSubscription config on a namespace.")
     @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
-            @ApiResponse(code = 404, message = "Namespace does not exist") })
-    public int getMaxConsumersPerSubscription(@PathParam("tenant") String tenant,
+            @ApiResponse(code = 404, message = "Namespace does not exist"),
+            @ApiResponse(code = 412, message = "Namespace name is not valid")})
+    public int getMaxConsumersPerSubscription(
+            @PathParam("tenant") String tenant,
             @PathParam("namespace") String namespace) {
         validateNamespaceName(tenant, namespace);
         return internalGetMaxConsumersPerSubscription();
@@ -702,9 +711,11 @@ public class Namespaces extends NamespacesBase {
     @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
             @ApiResponse(code = 404, message = "Namespace does not exist"),
             @ApiResponse(code = 409, message = "Concurrent modification"),
-            @ApiResponse(code = 412, message = "maxConsumersPerSubscription value is not valid") })
-    public void setMaxConsumersPerSubscription(@PathParam("tenant") String tenant, @PathParam("namespace") String namespace,
-            int maxConsumersPerSubscription) {
+            @ApiResponse(code = 412, message = "maxConsumersPerSubscription value is not valid or namespace name is not valid") })
+    public void setMaxConsumersPerSubscription(
+            @PathParam("tenant") String tenant,
+            @PathParam("namespace") String namespace,
+            @ApiParam(value = "max number of consumer allowed per subscription") int maxConsumersPerSubscription) {
         validateNamespaceName(tenant, namespace);
         internalSetMaxConsumersPerSubscription(maxConsumersPerSubscription);
     }
@@ -714,9 +725,12 @@ public class Namespaces extends NamespacesBase {
     @ApiOperation(value = "Set anti-affinity group for a namespace")
     @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
             @ApiResponse(code = 404, message = "Tenant or cluster or namespace doesn't exist"),
-            @ApiResponse(code = 412, message = "Invalid antiAffinityGroup") })
-    public void setNamespaceAntiAffinityGroup(@PathParam("tenant") String tenant,
-            @PathParam("namespace") String namespace, String antiAffinityGroup) {
+            @ApiResponse(code = 409, message = "Concurrent modification"),
+            @ApiResponse(code = 412, message = "Invalid antiAffinityGroup or namespace name is not valid") })
+    public void setNamespaceAntiAffinityGroup(
+            @PathParam("tenant") String tenant,
+            @PathParam("namespace") String namespace,
+            @ApiParam(value = "anti-affinity group name") String antiAffinityGroup) {
         validateNamespaceName(tenant, namespace);
         internalSetNamespaceAntiAffinityGroup(antiAffinityGroup);
     }
@@ -725,8 +739,10 @@ public class Namespaces extends NamespacesBase {
     @Path("/{tenant}/{namespace}/antiAffinity")
     @ApiOperation(value = "Get anti-affinity group of a namespace.")
     @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
-            @ApiResponse(code = 404, message = "Tenant or cluster or namespace doesn't exist") })
-    public String getNamespaceAntiAffinityGroup(@PathParam("tenant") String tenant,
+            @ApiResponse(code = 404, message = "Tenant or cluster or namespace doesn't exist"),
+            @ApiResponse(code = 412, message = "Namespace name is not valid") })
+    public String getNamespaceAntiAffinityGroup(
+            @PathParam("tenant") String tenant,
             @PathParam("namespace") String namespace) {
         validateNamespaceName(tenant, namespace);
         return internalGetNamespaceAntiAffinityGroup();
@@ -737,8 +753,10 @@ public class Namespaces extends NamespacesBase {
     @ApiOperation(value = "Remove anti-affinity group of a namespace.")
     @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
             @ApiResponse(code = 404, message = "Namespace does not exist"),
-            @ApiResponse(code = 409, message = "Concurrent modification") })
-    public void removeNamespaceAntiAffinityGroup(@PathParam("tenant") String tenant,
+            @ApiResponse(code = 409, message = "Concurrent modification"),
+            @ApiResponse(code = 412, message = "Namespace name is not valid") })
+    public void removeNamespaceAntiAffinityGroup(
+            @PathParam("tenant") String tenant,
             @PathParam("namespace") String namespace) {
         validateNamespaceName(tenant, namespace);
         internalRemoveNamespaceAntiAffinityGroup();
@@ -749,8 +767,10 @@ public class Namespaces extends NamespacesBase {
     @ApiOperation(value = "Get all namespaces that are grouped by given anti-affinity group in a given cluster. api can be only accessed by admin of any of the existing tenant")
     @ApiResponses(value = { @ApiResponse(code = 403, message = "Don't have admin permission"),
             @ApiResponse(code = 412, message = "Cluster not exist/Anti-affinity group can't be empty.") })
-    public List<String> getAntiAffinityNamespaces(@PathParam("cluster") String cluster,
-            @PathParam("group") String antiAffinityGroup, @QueryParam("tenant") String tenant) {
+    public List<String> getAntiAffinityNamespaces(
+            @PathParam("cluster") String cluster,
+            @PathParam("group") String antiAffinityGroup,
+            @QueryParam("tenant") String tenant) {
         return internalGetAntiAffinityNamespaces(cluster, antiAffinityGroup, tenant);
     }
 
