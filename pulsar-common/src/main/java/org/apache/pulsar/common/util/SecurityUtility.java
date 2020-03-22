@@ -35,7 +35,9 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.Provider;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
@@ -51,16 +53,44 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 /**
  * Helper class for the security domain.
  */
+@Slf4j
 public class SecurityUtility {
 
-    static {
-        // Fixes loading PKCS8Key file: https://stackoverflow.com/a/18912362
-        java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+    public static final Provider BC_PROVIDER = getProvider();
+    public static final String BC_FIPS_PROVIDER_CLASS = "org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider";
+    public static final String BC_NON_FIPS_PROVIDER_CLASS = "org.bouncycastle.jce.provider.BouncyCastleProvider";
+    // Security.getProvider("BC") / Security.getProvider("BCFIPS").
+    // also used to get Factories. e.g. CertificateFactory.getInstance("X.509", "BCFIPS")
+    public static final String BC_FIPS = "BCFIPS";
+    public static final String BC = "BC";
+
+    public static boolean isBCFIPS() {
+        return BC_PROVIDER.getClass().getCanonicalName().equals(BC_FIPS_PROVIDER_CLASS);
+    }
+
+    public static Provider getProvider() {
+        boolean isProviderInstalled =
+                Security.getProvider(BC) != null || Security.getProvider(BC_FIPS) != null;
+        if (isProviderInstalled) {
+            Provider provider = Security.getProvider(BC) != null
+                    ? Security.getProvider(BC)
+                    : Security.getProvider(BC_FIPS);
+            log.info("already instantiated provider {}", provider.getName());
+            return provider;
+        }
+
+        try {
+            // TODO: set the bc nar path in mvn pom file?
+            return SearchBcNarUtils.getBcProvider(System.getProperty("BcPath"));
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
     }
 
     public static SSLContext createSslContext(boolean allowInsecureConnection, Certificate[] trustCertificates)

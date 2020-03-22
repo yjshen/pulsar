@@ -28,6 +28,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -106,6 +108,20 @@ public abstract class MockedPulsarServiceBaseTest {
         this.conf.setBrokerServicePortTls(Optional.of(0));
         this.conf.setWebServicePort(Optional.of(0));
         this.conf.setWebServicePortTls(Optional.of(0));
+
+        // load Bouncy Castle Provider
+        URL bouncyCastleUrl = this.getClass().getClassLoader().getResource("bc/bouncy-castle-bc.nar");
+        // URL bouncyCastleUrl = this.getClass().getClassLoader().getResource("bcfips/bouncy-castle-bcfips.nar");
+
+        Path narPath;
+        try {
+            narPath = Paths.get(bouncyCastleUrl.toURI());
+        } catch (Exception e) {
+            log.error("failed to get Bouncy Castle Path, url: {}. Exception: ", bouncyCastleUrl, e);
+            return;
+        }
+        String bcNarDir = narPath.toFile().getParent();
+        System.setProperty("BcPath", bcNarDir);
     }
 
     protected final void internalSetup() throws Exception {

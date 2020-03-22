@@ -18,6 +18,8 @@
  */
 package org.apache.pulsar.client.impl;
 
+import static org.apache.pulsar.common.util.SecurityUtility.BC_PROVIDER;
+
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -71,12 +73,12 @@ import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.asn1.x9.X9ECParameters;
-import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
-import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.jce.spec.ECParameterSpec;
-import org.bouncycastle.jce.spec.ECPrivateKeySpec;
-import org.bouncycastle.jce.spec.ECPublicKeySpec;
+//import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
+//import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
+//import org.bouncycastle.jce.provider.BouncyCastleProvider;
+//import org.bouncycastle.jce.spec.ECParameterSpec;
+//import org.bouncycastle.jce.spec.ECPrivateKeySpec;
+//import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.openssl.PEMException;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
@@ -113,7 +115,6 @@ public class MessageCrypto {
     static final SecureRandom secureRandom;
     static {
 
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         SecureRandom rand = null;
         try {
             rand = SecureRandom.getInstance("NativePRNGNonBlocking");
@@ -143,7 +144,7 @@ public class MessageCrypto {
 
         try {
 
-            cipher = Cipher.getInstance(AESGCM, BouncyCastleProvider.PROVIDER_NAME);
+            cipher = Cipher.getInstance(AESGCM, BC_PROVIDER.getName());
             // If keygen is not needed(e.g: consumer), data key will be decrypted from the message
             if (!keyGenNeeded) {
 
@@ -176,11 +177,10 @@ public class MessageCrypto {
         iv = new byte[ivLen];
     }
 
-    private PublicKey loadPublicKey(byte[] keyBytes) throws Exception {
-
+    private static PublicKey loadPublicKey(byte[] keyBytes) throws Exception {
         Reader keyReader = new StringReader(new String(keyBytes));
         PublicKey publicKey = null;
-        try (org.bouncycastle.openssl.PEMParser pemReader = new org.bouncycastle.openssl.PEMParser(keyReader)) {
+        try (PEMParser pemReader = new PEMParser(keyReader)) {
             Object pemObj = pemReader.readObject();
             JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
             SubjectPublicKeyInfo keyInfo = null;
@@ -211,21 +211,22 @@ public class MessageCrypto {
                 keyInfo = (SubjectPublicKeyInfo) pemObj;
             }
             publicKey = pemConverter.getPublicKey(keyInfo);
-
-            if (ecParam != null && ECDSA.equals(publicKey.getAlgorithm())) {
-                ECParameterSpec ecSpec = new ECParameterSpec(ecParam.getCurve(), ecParam.getG(), ecParam.getN(),
-                        ecParam.getH(), ecParam.getSeed());
-                KeyFactory keyFactory = KeyFactory.getInstance(ECDSA, BouncyCastleProvider.PROVIDER_NAME);
-                ECPublicKeySpec keySpec = new ECPublicKeySpec(((BCECPublicKey) publicKey).getQ(), ecSpec);
-                publicKey = (PublicKey) keyFactory.generatePublic(keySpec);
-            }
-        } catch (IOException | NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {
+// todo: handle ec
+//            if (ecParam != null && ECDSA.equals(publicKey.getAlgorithm())) {
+//                ECParameterSpec ecSpec = new ECParameterSpec(ecParam.getCurve(), ecParam.getG(), ecParam.getN(),
+//                        ecParam.getH(), ecParam.getSeed());
+//                KeyFactory keyFactory = KeyFactory.getInstance(ECDSA, BC_PROVIDER.getName());
+//                ECPublicKeySpec keySpec = new ECPublicKeySpec(((BCECPublicKey) publicKey).getQ(), ecSpec);
+//                publicKey = (PublicKey) keyFactory.generatePublic(keySpec);
+//            }
+//        } catch (IOException | NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {
+        } catch (Exception e) {
             throw new Exception(e);
         }
         return publicKey;
     }
 
-    private PrivateKey loadPrivateKey(byte[] keyBytes) throws Exception {
+    private static PrivateKey loadPrivateKey(byte[] keyBytes) throws Exception {
 
         Reader keyReader = new StringReader(new String(keyBytes));
         PrivateKey privateKey = null;
@@ -264,14 +265,14 @@ public class MessageCrypto {
 
             // if our private key is EC type and we have parameters specified
             // then we need to set it accordingly
-
-            if (ecParam != null && ECDSA.equals(privateKey.getAlgorithm())) {
-                ECParameterSpec ecSpec = new ECParameterSpec(ecParam.getCurve(), ecParam.getG(), ecParam.getN(),
-                        ecParam.getH(), ecParam.getSeed());
-                KeyFactory keyFactory = KeyFactory.getInstance(ECDSA, BouncyCastleProvider.PROVIDER_NAME);
-                ECPrivateKeySpec keySpec = new ECPrivateKeySpec(((BCECPrivateKey) privateKey).getS(), ecSpec);
-                privateKey = (PrivateKey) keyFactory.generatePrivate(keySpec);
-            }
+// todo: handle ec
+//            if (ecParam != null && ECDSA.equals(privateKey.getAlgorithm())) {
+//                ECParameterSpec ecSpec = new ECParameterSpec(ecParam.getCurve(), ecParam.getG(), ecParam.getN(),
+//                        ecParam.getH(), ecParam.getSeed());
+//                KeyFactory keyFactory = KeyFactory.getInstance(ECDSA, BC_PROVIDER.getName());
+//                ECPrivateKeySpec keySpec = new ECPrivateKeySpec(((BCECPrivateKey) privateKey).getS(), ecSpec);
+//                privateKey = (PrivateKey) keyFactory.generatePrivate(keySpec);
+//            }
 
         } catch (IOException e) {
             throw new Exception(e);
@@ -326,9 +327,9 @@ public class MessageCrypto {
 
             // Encrypt data key using public key
             if (RSA.equals(pubKey.getAlgorithm())) {
-                dataKeyCipher = Cipher.getInstance(RSA_TRANS, BouncyCastleProvider.PROVIDER_NAME);
+                dataKeyCipher = Cipher.getInstance(RSA_TRANS, BC_PROVIDER.getName());
             } else if (ECDSA.equals(pubKey.getAlgorithm())) {
-                dataKeyCipher = Cipher.getInstance(ECIES, BouncyCastleProvider.PROVIDER_NAME);
+                dataKeyCipher = Cipher.getInstance(ECIES, BC_PROVIDER.getName());
             } else {
                 String msg = logCtx + "Unsupported key type " + pubKey.getAlgorithm() + " for key " + keyName;
                 log.error(msg);
@@ -477,9 +478,9 @@ public class MessageCrypto {
 
             // Decrypt data key using private key
             if (RSA.equals(privateKey.getAlgorithm())) {
-                dataKeyCipher = Cipher.getInstance(RSA_TRANS, BouncyCastleProvider.PROVIDER_NAME);
+                dataKeyCipher = Cipher.getInstance(RSA_TRANS, BC_PROVIDER.getName());
             } else if (ECDSA.equals(privateKey.getAlgorithm())) {
-                dataKeyCipher = Cipher.getInstance(ECIES, BouncyCastleProvider.PROVIDER_NAME);
+                dataKeyCipher = Cipher.getInstance(ECIES, BC_PROVIDER.getName());
             } else {
                 log.error("Unsupported key type {} for key {}.", privateKey.getAlgorithm(), keyName);
                 return false;
