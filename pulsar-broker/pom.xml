@@ -392,7 +392,7 @@
                 <copy file="${basedir}/../pulsar-functions/java-examples/target/pulsar-functions-api-examples.jar" tofile="${basedir}/src/test/resources/pulsar-functions-api-examples.jar"/>
                 <copy file="${basedir}/../pulsar-io/data-generator/target/pulsar-io-data-generator-${project.version}.nar" tofile="${basedir}/src/test/resources/pulsar-io-data-generator.nar"/>
                 <copy file="${basedir}/../bouncy-castle/bc/target/bouncy-castle-bc-${project.version}.nar" tofile="${basedir}/src/test/resources/bc/bouncy-castle-bc.nar"/>
-                <copy file="${basedir}/../bouncy-castle/bcfips/target/bouncy-castle-bcfips-${project.version}.nar" tofile="${basedir}/src/test/resources/bcfips/bouncy-castle-bcfips.nar"/>
+<!--                <copy file="${basedir}/../bouncy-castle/bcfips/target/bouncy-castle-bcfips-${project.version}.nar" tofile="${basedir}/src/test/resources/bcfips/bouncy-castle-bcfips.nar"/>-->
               </tasks>
             </configuration>
           </execution>
