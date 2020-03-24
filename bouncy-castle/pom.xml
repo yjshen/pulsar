@@ -35,5 +35,6 @@
   <modules>
     <module>bc</module>
     <module>bcfips</module>
+    <module>bc-shaded</module>
   </modules>
 </project>

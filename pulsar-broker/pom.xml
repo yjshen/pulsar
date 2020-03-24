@@ -72,7 +72,7 @@
     </dependency>
 
     <dependency>
-      <groupId>${project.groupId}</groupId>
+      <groupId>org.apache.pulsar</groupId>
       <artifactId>pulsar-client-original</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -300,20 +300,12 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>bouncy-castle-bc</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <!--    should rely on this to test fips-->
-    <!--    <dependency>-->
-    <!--      <groupId>${project.groupId}</groupId>-->
-    <!--      <artifactId>bouncy-castle-bcfips</artifactId>-->
-    <!--      <version>${project.version}</version>-->
-    <!--      <scope>test</scope>-->
-    <!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>${project.groupId}</groupId>-->
+<!--      <artifactId>bouncy-castle-bc</artifactId>-->
+<!--      <version>${project.version}</version>-->
+<!--      <scope>test</scope>-->
+<!--    </dependency>-->
 
     <dependency>
       <groupId>javax.xml.bind</groupId>
@@ -391,7 +383,7 @@
                 <mkdir dir="${basedir}/src/test/resources"/>
                 <copy file="${basedir}/../pulsar-functions/java-examples/target/pulsar-functions-api-examples.jar" tofile="${basedir}/src/test/resources/pulsar-functions-api-examples.jar"/>
                 <copy file="${basedir}/../pulsar-io/data-generator/target/pulsar-io-data-generator-${project.version}.nar" tofile="${basedir}/src/test/resources/pulsar-io-data-generator.nar"/>
-                <copy file="${basedir}/../bouncy-castle/bc/target/bouncy-castle-bc-${project.version}.nar" tofile="${basedir}/src/test/resources/bc/bouncy-castle-bc.nar"/>
+<!--                <copy file="${basedir}/../bouncy-castle/bc/target/bouncy-castle-bc-${project.version}.nar" tofile="${basedir}/src/test/resources/bc/bouncy-castle-bc.nar"/>-->
 <!--                <copy file="${basedir}/../bouncy-castle/bcfips/target/bouncy-castle-bcfips-${project.version}.nar" tofile="${basedir}/src/test/resources/bcfips/bouncy-castle-bcfips.nar"/>-->
               </tasks>
             </configuration>

@@ -37,6 +37,7 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>pulsar-common</artifactId>
       <version>${project.parent.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -54,6 +55,24 @@
 
   <build>
     <plugins>
+<!--      <plugin>-->
+<!--        <groupId>org.apache.maven.plugins</groupId>-->
+<!--        <artifactId>maven-shade-plugin</artifactId>-->
+<!--        <executions>-->
+<!--          <execution>-->
+<!--            <phase>package</phase>-->
+<!--            <goals>-->
+<!--              <goal>shade</goal>-->
+<!--            </goals>-->
+<!--            <configuration>-->
+<!--              <createDependencyReducedPom>true</createDependencyReducedPom>-->
+<!--              <promoteTransitiveDependencies>true</promoteTransitiveDependencies>-->
+
+<!--            </configuration>-->
+<!--          </execution>-->
+<!--        </executions>-->
+<!--      </plugin>-->
+
       <plugin>
         <groupId>org.apache.nifi</groupId>
         <artifactId>nifi-nar-maven-plugin</artifactId>

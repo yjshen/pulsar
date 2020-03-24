@@ -26,6 +26,8 @@ import com.google.common.collect.Sets;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -107,6 +109,19 @@ public class ReplicatorTestBase {
         // Start region 1
         bkEnsemble1 = new LocalBookkeeperEnsemble(3, 0, () -> 0);
         bkEnsemble1.start();
+
+        // load Bouncy Castle Provider
+        URL bouncyCastleUrl = this.getClass().getClassLoader().getResource("bc/bouncy-castle-bc.nar");
+
+        Path narPath;
+        try {
+            narPath = Paths.get(bouncyCastleUrl.toURI());
+        } catch (Exception e) {
+            log.error("failed to get Bouncy Castle Path, url: {}. Exception: ", bouncyCastleUrl, e);
+            return;
+        }
+        String bcNarDir = narPath.toFile().getParent();
+        System.setProperty("BcPath", bcNarDir);
 
         // NOTE: we have to instantiate a new copy of System.getProperties() to make sure pulsar1 and pulsar2 have
         // completely
