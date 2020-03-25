@@ -39,8 +39,7 @@ public class PositionImplRecyclable extends PositionImpl implements Position {
     }
 
     public static PositionImplRecyclable create() {
-        PositionImplRecyclable position = RECYCLER.get();
-        return position;
+        return RECYCLER.get();
     }
 
     public void recycle() {

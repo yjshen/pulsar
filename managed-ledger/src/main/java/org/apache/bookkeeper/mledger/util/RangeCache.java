@@ -49,7 +49,7 @@ public class RangeCache<Key extends Comparable<Key>, Value extends ReferenceCoun
      * Construct a new RangeLruCache with default Weighter.
      */
     public RangeCache() {
-        this(new DefaultWeighter<Value>(), (x) -> System.nanoTime());
+        this(new DefaultWeighter<>(), (x) -> System.nanoTime());
     }
 
     /**
