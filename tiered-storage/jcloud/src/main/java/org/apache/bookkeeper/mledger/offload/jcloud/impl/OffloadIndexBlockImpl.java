@@ -18,6 +18,10 @@
  */
 package org.apache.bookkeeper.mledger.offload.jcloud.impl;
 
+import static com.google.common.base.Preconditions.checkState;
+import static org.apache.bookkeeper.mledger.offload.OffloadUtils.buildLedgerMetadataFormat;
+import static org.apache.bookkeeper.mledger.offload.OffloadUtils.parseLedgerMetadata;
+
 import com.google.common.collect.Maps;
 
 import io.netty.buffer.ByteBuf;
@@ -37,10 +41,6 @@ import org.apache.bookkeeper.mledger.offload.jcloud.OffloadIndexEntry;
 import org.apache.pulsar.common.allocator.PulsarByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.google.common.base.Preconditions.checkState;
-import static org.apache.bookkeeper.mledger.offload.OffloadUtils.buildLedgerMetadataFormat;
-import static org.apache.bookkeeper.mledger.offload.OffloadUtils.parseLedgerMetadata;
 
 public class OffloadIndexBlockImpl implements OffloadIndexBlock {
     private static final Logger log = LoggerFactory.getLogger(OffloadIndexBlockImpl.class);
@@ -161,10 +161,9 @@ public class OffloadIndexBlockImpl implements OffloadIndexBlock {
         out.writeBytes(ledgerMetadataByte);
 
         // write entries
-        this.indexEntries.entrySet().forEach(entry ->
-            out.writeLong(entry.getValue().getEntryId())
-                .writeInt(entry.getValue().getPartId())
-                .writeLong(entry.getValue().getOffset()));
+        this.indexEntries.forEach((key, value) -> out.writeLong(value.getEntryId())
+                .writeInt(value.getPartId())
+                .writeLong(value.getOffset()));
 
         return new OffloadIndexBlock.IndexInputStream(new ByteBufInputStream(out, true), indexBlockLength);
     }
@@ -172,7 +171,7 @@ public class OffloadIndexBlockImpl implements OffloadIndexBlock {
     private OffloadIndexBlock fromStream(InputStream stream) throws IOException {
         DataInputStream dis = new DataInputStream(stream);
         int magic = dis.readInt();
-        if (magic != this.INDEX_MAGIC_WORD) {
+        if (magic != INDEX_MAGIC_WORD) {
             throw new IOException(String.format("Invalid MagicWord. read: 0x%x  expected: 0x%x",
                                                 magic, INDEX_MAGIC_WORD));
         }

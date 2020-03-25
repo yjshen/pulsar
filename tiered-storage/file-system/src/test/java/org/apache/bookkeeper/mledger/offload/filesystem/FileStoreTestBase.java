@@ -18,18 +18,17 @@
  */
 package org.apache.bookkeeper.mledger.offload.filesystem;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.util.Properties;
+
 import org.apache.bookkeeper.common.util.OrderedScheduler;
 import org.apache.bookkeeper.mledger.offload.filesystem.impl.FileSystemManagedLedgerOffloader;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
-
 import org.apache.pulsar.common.policies.data.OffloadPolicies;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.util.Properties;
 
 public class FileStoreTestBase {
     protected FileSystemManagedLedgerOffloader fileSystemManagedLedgerOffloader;

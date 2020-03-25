@@ -18,22 +18,10 @@
  */
 package org.apache.bookkeeper.mledger.offload.filesystem.impl;
 
+import static org.apache.bookkeeper.mledger.offload.OffloadUtils.parseLedgerMetadata;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import org.apache.bookkeeper.client.BKException;
-import org.apache.bookkeeper.client.api.LastConfirmedAndEntry;
-import org.apache.bookkeeper.client.api.LedgerEntries;
-import org.apache.bookkeeper.client.api.LedgerEntry;
-import org.apache.bookkeeper.client.api.LedgerMetadata;
-import org.apache.bookkeeper.client.api.ReadHandle;
-import org.apache.bookkeeper.client.impl.LedgerEntriesImpl;
-import org.apache.bookkeeper.client.impl.LedgerEntryImpl;
-
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.MapFile;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,7 +30,19 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static org.apache.bookkeeper.mledger.offload.OffloadUtils.parseLedgerMetadata;
+import org.apache.bookkeeper.client.BKException;
+import org.apache.bookkeeper.client.api.LastConfirmedAndEntry;
+import org.apache.bookkeeper.client.api.LedgerEntries;
+import org.apache.bookkeeper.client.api.LedgerEntry;
+import org.apache.bookkeeper.client.api.LedgerMetadata;
+import org.apache.bookkeeper.client.api.ReadHandle;
+import org.apache.bookkeeper.client.impl.LedgerEntriesImpl;
+import org.apache.bookkeeper.client.impl.LedgerEntryImpl;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.MapFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileStoreBackedReadHandleImpl implements ReadHandle {
     private static final Logger log = LoggerFactory.getLogger(FileStoreBackedReadHandleImpl.class);
@@ -51,7 +51,8 @@ public class FileStoreBackedReadHandleImpl implements ReadHandle {
     private final long ledgerId;
     private final LedgerMetadata ledgerMetadata;
 
-    private FileStoreBackedReadHandleImpl(ExecutorService executor, MapFile.Reader reader, long ledgerId) throws IOException {
+    private FileStoreBackedReadHandleImpl(ExecutorService executor, MapFile.Reader reader, long ledgerId)
+            throws IOException {
         this.ledgerId = ledgerId;
         this.executor = executor;
         this.reader = reader;
@@ -106,7 +107,7 @@ public class FileStoreBackedReadHandleImpl implements ReadHandle {
                 return;
             }
             long entriesToRead = (lastEntry - firstEntry) + 1;
-            List<LedgerEntry> entries = new ArrayList<LedgerEntry>();
+            List<LedgerEntry> entries = new ArrayList<>();
             long nextExpectedId = firstEntry;
             LongWritable key = new LongWritable();
             BytesWritable value = new BytesWritable();
@@ -177,7 +178,8 @@ public class FileStoreBackedReadHandleImpl implements ReadHandle {
         return promise;
     }
 
-    public static ReadHandle open(ScheduledExecutorService executor, MapFile.Reader reader, long ledgerId) throws IOException {
-            return new FileStoreBackedReadHandleImpl(executor, reader, ledgerId);
+    public static ReadHandle open(ScheduledExecutorService executor, MapFile.Reader reader, long ledgerId)
+            throws IOException {
+        return new FileStoreBackedReadHandleImpl(executor, reader, ledgerId);
     }
 }

@@ -18,8 +18,19 @@
  */
 package org.apache.bookkeeper.mledger.offload.filesystem.impl;
 
+import static org.apache.bookkeeper.mledger.offload.OffloadUtils.buildLedgerMetadataFormat;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.bookkeeper.client.api.LedgerEntries;
 import org.apache.bookkeeper.client.api.LedgerEntry;
 import org.apache.bookkeeper.client.api.ReadHandle;
@@ -36,18 +47,6 @@ import org.apache.hadoop.io.MapFile;
 import org.apache.pulsar.common.policies.data.OffloadPolicies;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static org.apache.bookkeeper.mledger.offload.OffloadUtils.buildLedgerMetadataFormat;
 
 public class FileSystemManagedLedgerOffloader implements LedgerOffloader {
 
@@ -82,8 +81,8 @@ public class FileSystemManagedLedgerOffloader implements LedgerOffloader {
         this.configuration = new Configuration();
         if (conf.getFileSystemProfilePath() != null) {
             String[] paths = conf.getFileSystemProfilePath().split(",");
-            for (int i =0 ; i < paths.length; i++) {
-                configuration.addResource(new Path(paths[i]));
+            for (String path : paths) {
+                configuration.addResource(new Path(path));
             }
         }
         if (!"".equals(conf.getFileSystemURI()) && conf.getFileSystemURI() != null) {
@@ -204,8 +203,8 @@ public class FileSystemManagedLedgerOffloader implements LedgerOffloader {
                 IOUtils.closeStream(dataWriter);
                 promise.complete(null);
             } catch (Exception e) {
-                log.error("Exception when get CompletableFuture<LedgerEntries> : ManagerLedgerName: {}, " +
-                        "LedgerId: {}, UUID: {} ", extraMetadata.get(MANAGED_LEDGER_NAME), ledgerId, uuid, e);
+                log.error("Exception when get CompletableFuture<LedgerEntries> : ManagerLedgerName: {}, "
+                        + "LedgerId: {}, UUID: {} ", extraMetadata.get(MANAGED_LEDGER_NAME), ledgerId, uuid, e);
                 if (e instanceof InterruptedException) {
                     Thread.currentThread().interrupt();
                 }
@@ -239,9 +238,7 @@ public class FileSystemManagedLedgerOffloader implements LedgerOffloader {
         @Override
         public void run() {
             if (ledgerReader.fileSystemWriteException == null) {
-                Iterator<LedgerEntry> iterator = ledgerEntriesOnce.iterator();
-                while (iterator.hasNext()) {
-                    LedgerEntry entry = iterator.next();
+                for (LedgerEntry entry : ledgerEntriesOnce) {
                     long entryId = entry.getEntryId();
                     key.set(entryId);
                     try {
@@ -270,8 +267,8 @@ public class FileSystemManagedLedgerOffloader implements LedgerOffloader {
                         configuration);
                 promise.complete(FileStoreBackedReadHandleImpl.open(scheduler.chooseThread(ledgerId), reader, ledgerId));
             } catch (Throwable t) {
-                log.error("Failed to open FileStoreBackedReadHandleImpl: ManagerLedgerName: {}, " +
-                        "LegerId: {}, UUID: {}", offloadDriverMetadata.get(MANAGED_LEDGER_NAME), ledgerId, uuid, t);
+                log.error("Failed to open FileStoreBackedReadHandleImpl: ManagerLedgerName: {}, "
+                        + "LegerId: {}, UUID: {}", offloadDriverMetadata.get(MANAGED_LEDGER_NAME), ledgerId, uuid, t);
                 promise.completeExceptionally(t);
             }
         });

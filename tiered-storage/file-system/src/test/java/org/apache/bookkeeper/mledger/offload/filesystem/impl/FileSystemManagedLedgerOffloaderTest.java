@@ -19,7 +19,21 @@
 package org.apache.bookkeeper.mledger.offload.filesystem.impl;
 
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+
 import com.google.common.util.concurrent.MoreExecutors;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.apache.bookkeeper.client.BookKeeper;
 import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.bookkeeper.client.PulsarMockBookKeeper;
@@ -38,19 +52,6 @@ import org.apache.zookeeper.MockZooKeeper;
 import org.apache.zookeeper.data.ACL;
 import org.testng.annotations.Test;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 public class FileSystemManagedLedgerOffloaderTest extends FileStoreTestBase {
     private final PulsarMockBookKeeper bk;
     private String topic = "public/default/persistent/testOffload";
@@ -68,7 +69,7 @@ public class FileSystemManagedLedgerOffloaderTest extends FileStoreTestBase {
 
     private static MockZooKeeper createMockZooKeeper() throws Exception {
         MockZooKeeper zk = MockZooKeeper.newInstance(MoreExecutors.newDirectExecutorService());
-        List<ACL> dummyAclList = new ArrayList<ACL>(0);
+        List<ACL> dummyAclList = new ArrayList<>(0);
 
         ZkUtils.createFullPathOptimistic(zk, "/ledgers/available/192.168.1.1:" + 5000,
                 "".getBytes(UTF_8), dummyAclList, CreateMode.PERSISTENT);
@@ -146,7 +147,7 @@ public class FileSystemManagedLedgerOffloaderTest extends FileStoreTestBase {
     }
 
     private String createStoragePath(String managedLedgerName) {
-        return basePath == null ? managedLedgerName + "/" : basePath + "/" +  managedLedgerName + "/";
+        return basePath + "/" + managedLedgerName + "/";
     }
 
     private String createIndexFilePath(String storagePath, long ledgerId, UUID uuid) {

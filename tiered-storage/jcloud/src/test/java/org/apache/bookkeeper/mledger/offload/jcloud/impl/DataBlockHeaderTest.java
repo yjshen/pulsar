@@ -26,7 +26,9 @@ import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.bookkeeper.mledger.offload.jcloud.DataBlockHeader;
 import org.testng.annotations.Test;
 
@@ -42,7 +44,7 @@ public class DataBlockHeaderTest {
             firstEntryId);
 
         // verify get methods
-        assertEquals(dataBlockHeader.getBlockMagicWord(), DataBlockHeaderImpl.MAGIC_WORD);
+        assertEquals(DataBlockHeaderImpl.getBlockMagicWord(), DataBlockHeaderImpl.MAGIC_WORD);
         assertEquals(dataBlockHeader.getBlockLength(), blockLength);
         assertEquals(dataBlockHeader.getFirstEntryId(), firstEntryId);
 
@@ -56,7 +58,7 @@ public class DataBlockHeaderTest {
         assertEquals(stream.read(), -1);
 
         stream.reset();
-        byte streamContent[] = new byte[DataBlockHeaderImpl.getDataStartOffset()];
+        byte[] streamContent = new byte[DataBlockHeaderImpl.getDataStartOffset()];
 
         // stream with all 0, simulate junk data, should throw exception for header magic not match.
         try(InputStream stream2 = new ByteArrayInputStream(streamContent, 0, DataBlockHeaderImpl.getDataStartOffset())) {

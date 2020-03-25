@@ -18,8 +18,8 @@
  */
 package org.apache.bookkeeper.mledger.offload.jcloud;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public abstract class BackedInputStream extends InputStream {
     public abstract void seek(long position);

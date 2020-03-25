@@ -24,10 +24,10 @@ import com.google.common.collect.Lists;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
+import io.netty.util.ReferenceCounted;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -122,9 +122,7 @@ public class BlockAwareSegmentInputStreamImpl extends BlockAwareSegmentInputStre
 
             List<ByteBuf> entries = Lists.newLinkedList();
 
-            Iterator<LedgerEntry> iterator = ledgerEntriesOnce.iterator();
-            while (iterator.hasNext()) {
-                LedgerEntry entry = iterator.next();
+            for (LedgerEntry entry : ledgerEntriesOnce) {
                 ByteBuf buf = entry.getEntryBuffer().retain();
                 int entryLength = buf.readableBytes();
                 long entryId = entry.getEntryId();
@@ -169,7 +167,7 @@ public class BlockAwareSegmentInputStreamImpl extends BlockAwareSegmentInputStre
         super.close();
         dataBlockHeaderStream.close();
         if (!entriesByteBuf.isEmpty()) {
-            entriesByteBuf.forEach(buf -> buf.release());
+            entriesByteBuf.forEach(ReferenceCounted::release);
             entriesByteBuf.clear();
         }
     }

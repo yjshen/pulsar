@@ -18,14 +18,13 @@
  */
 package org.apache.bookkeeper.mledger.offload.filesystem;
 
+import java.io.IOException;
+import java.util.Map;
+
 import org.apache.bookkeeper.common.util.OrderedScheduler;
 import org.apache.bookkeeper.mledger.LedgerOffloaderFactory;
 import org.apache.bookkeeper.mledger.offload.filesystem.impl.FileSystemManagedLedgerOffloader;
 import org.apache.pulsar.common.policies.data.OffloadPolicies;
-
-import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
 
 public class FileSystemLedgerOffloaderFactory implements LedgerOffloaderFactory<FileSystemManagedLedgerOffloader> {
     @Override

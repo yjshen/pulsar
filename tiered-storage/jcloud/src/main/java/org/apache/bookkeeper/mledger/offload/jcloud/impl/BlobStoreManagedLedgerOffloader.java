@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -40,7 +41,9 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
 import lombok.Data;
+
 import org.apache.bookkeeper.client.api.ReadHandle;
 import org.apache.bookkeeper.common.util.OrderedScheduler;
 import org.apache.bookkeeper.mledger.LedgerOffloader;
@@ -69,10 +72,10 @@ import org.jclouds.googlecloud.GoogleCredentialsFromJson;
 import org.jclouds.googlecloudstorage.GoogleCloudStorageProviderMetadata;
 import org.jclouds.io.Payload;
 import org.jclouds.io.Payloads;
-import org.jclouds.osgi.ProviderRegistry;
-import org.jclouds.s3.reference.S3Constants;
 import org.jclouds.osgi.ApiRegistry;
+import org.jclouds.osgi.ProviderRegistry;
 import org.jclouds.s3.S3ApiMetadata;
+import org.jclouds.s3.reference.S3Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -250,7 +253,7 @@ public class BlobStoreManagedLedgerOffloader implements LedgerOffloader {
                     "The service account key path is empty for GCS driver");
             }
             try {
-                String gcsKeyContent = Files.toString(new File(gcsKeyPath), Charset.defaultCharset());
+                String gcsKeyContent = Files.asCharSource(new File(gcsKeyPath), Charset.defaultCharset()).read();
                 return () -> new GoogleCredentialsFromJson(gcsKeyContent).get();
             } catch (IOException ioe) {
                 log.error("Cannot read GCS service account credentials file: {}", gcsKeyPath);
@@ -481,12 +484,12 @@ public class BlobStoreManagedLedgerOffloader implements LedgerOffloader {
                 BlobBuilder blobBuilder = writeBlobStore.blobBuilder(indexBlockKey);
                 addVersionInfo(blobBuilder, userMetadata);
                 Payload indexPayload = Payloads.newInputStreamPayload(indexStream);
-                indexPayload.getContentMetadata().setContentLength((long)indexStream.getStreamSize());
+                indexPayload.getContentMetadata().setContentLength(indexStream.getStreamSize());
                 indexPayload.getContentMetadata().setContentType("application/octet-stream");
 
                 Blob blob = blobBuilder
                     .payload(indexPayload)
-                    .contentLength((long)indexStream.getStreamSize())
+                    .contentLength(indexStream.getStreamSize())
                     .build();
 
                 writeBlobStore.putBlob(writeBucket, blob);

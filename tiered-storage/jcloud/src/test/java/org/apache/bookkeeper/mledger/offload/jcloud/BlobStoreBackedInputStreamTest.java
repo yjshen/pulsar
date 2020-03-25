@@ -97,7 +97,7 @@ public class BlobStoreBackedInputStreamTest extends BlobStoreTestBase {
         payload.getContentMetadata().setContentLength((long)objectSize);
         Blob blob = blobStore.blobBuilder(objectKey)
             .payload(payload)
-            .contentLength((long)objectSize)
+            .contentLength(objectSize)
             .build();
         String ret = blobStore.putBlob(BUCKET, blob);
         log.debug("put blob: {} in Bucket: {}, in blobStore, result: {}", objectKey, BUCKET, ret);
@@ -119,7 +119,7 @@ public class BlobStoreBackedInputStreamTest extends BlobStoreTestBase {
         payload.getContentMetadata().setContentLength((long)objectSize);
         Blob blob = blobStore.blobBuilder(objectKey)
             .payload(payload)
-            .contentLength((long)objectSize)
+            .contentLength(objectSize)
             .build();
         String ret = blobStore.putBlob(BUCKET, blob);
         log.debug("put blob: {} in Bucket: {}, in blobStore, result: {}", objectKey, BUCKET, ret);
@@ -158,7 +158,7 @@ public class BlobStoreBackedInputStreamTest extends BlobStoreTestBase {
         payload.getContentMetadata().setContentLength((long)objectSize);
         Blob blob = blobStore.blobBuilder(objectKey)
             .payload(payload)
-            .contentLength((long)objectSize)
+            .contentLength(objectSize)
             .build();
         String ret = blobStore.putBlob(BUCKET, blob);
         log.debug("put blob: {} in Bucket: {}, in blobStore, result: {}", objectKey, BUCKET, ret);
@@ -182,7 +182,7 @@ public class BlobStoreBackedInputStreamTest extends BlobStoreTestBase {
         payload.getContentMetadata().setContentLength((long)objectSize);
         Blob blob = blobStore.blobBuilder(objectKey)
             .payload(payload)
-            .contentLength((long)objectSize)
+            .contentLength(objectSize)
             .build();
         String ret = blobStore.putBlob(BUCKET, blob);
         log.debug("put blob: {} in Bucket: {}, in blobStore, result: {}", objectKey, BUCKET, ret);
@@ -232,7 +232,7 @@ public class BlobStoreBackedInputStreamTest extends BlobStoreTestBase {
         payload.getContentMetadata().setContentLength((long)objectSize);
         Blob blob = blobStore.blobBuilder(objectKey)
             .payload(payload)
-            .contentLength((long)objectSize)
+            .contentLength(objectSize)
             .build();
         String ret = blobStore.putBlob(BUCKET, blob);
         log.debug("put blob: {} in Bucket: {}, in blobStore, result: {}", objectKey, BUCKET, ret);

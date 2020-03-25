@@ -20,8 +20,9 @@ package org.apache.bookkeeper.mledger.offload.jcloud;
 
 import java.io.Closeable;
 import java.io.FilterInputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
+
 import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.apache.bookkeeper.common.annotation.InterfaceStability.Unstable;
 
@@ -73,7 +74,7 @@ public interface OffloadIndexBlock extends Closeable {
     /**
      * An input stream which knows the size of the stream upfront.
      */
-    public static class IndexInputStream extends FilterInputStream {
+    class IndexInputStream extends FilterInputStream {
         final long streamSize;
 
         public IndexInputStream(InputStream in, long streamSize) {

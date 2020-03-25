@@ -102,7 +102,7 @@ public class BlobStoreBackedReadHandleImpl implements ReadHandle {
                     return;
                 }
                 long entriesToRead = (lastEntry - firstEntry) + 1;
-                List<LedgerEntry> entries = new ArrayList<LedgerEntry>();
+                List<LedgerEntry> entries = new ArrayList<>();
                 long nextExpectedId = firstEntry;
                 try {
                     while (entriesToRead > 0) {

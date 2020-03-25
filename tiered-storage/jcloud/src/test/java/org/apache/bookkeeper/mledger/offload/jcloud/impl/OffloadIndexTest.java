@@ -25,14 +25,18 @@ import static org.testng.Assert.fail;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Map;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.bookkeeper.client.LedgerMetadataBuilder;
 import org.apache.bookkeeper.client.api.DigestType;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
@@ -138,7 +142,7 @@ public class OffloadIndexTest {
 
         // verify toStream
         InputStream out = indexBlock.toStream();
-        byte b[] = new byte[1024];
+        byte[] b = new byte[1024];
         int readoutLen = out.read(b);
         out.close();
         ByteBuf wrapper = Unpooled.wrappedBuffer(b);
@@ -166,7 +170,7 @@ public class OffloadIndexTest {
         OffloadIndexEntry e2 = OffloadIndexEntryImpl.of(wrapper.readLong(), wrapper.readInt(),
                                                         wrapper.readLong(), dataHeaderLength);
         OffloadIndexEntry e3 = OffloadIndexEntryImpl.of(wrapper.readLong(), wrapper.readInt(),
-                                                        wrapper.readLong(), dataHeaderLength);;
+                                                        wrapper.readLong(), dataHeaderLength);
 
         assertEquals(e1.getEntryId(),entry1.getEntryId());
         assertEquals(e1.getPartId(), entry1.getPartId());
@@ -201,7 +205,7 @@ public class OffloadIndexTest {
 
 
         out2.reset();
-        byte streamContent[] = new byte[streamLength];
+        byte[] streamContent = new byte[streamLength];
         // stream with all 0, simulate junk data, should throw exception for header magic not match.
         try(InputStream stream3 = new ByteArrayInputStream(streamContent, 0, streamLength)) {
             OffloadIndexBlock indexBlock3 = blockBuilder.fromStream(stream3);
