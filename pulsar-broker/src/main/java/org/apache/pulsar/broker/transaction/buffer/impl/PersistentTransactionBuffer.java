@@ -153,7 +153,7 @@ public class PersistentTransactionBuffer extends PersistentTopic implements Tran
     @Override
     public CompletableFuture<Void> abortTxn(TxnID txnID) {
         return txnCursor.getTxnMeta(txnID, false)
-                        .thenApply(meta -> createAbortMarker(meta))
+                        .thenApply(this::createAbortMarker)
                         .thenCompose(marker -> publishMessage(txnID, marker.marker, marker.sequenceId))
                         .thenCompose(position -> txnCursor.abortTxn(txnID));
     }
@@ -191,7 +191,7 @@ public class PersistentTransactionBuffer extends PersistentTopic implements Tran
             log.debug("Begin to purge the ledgers {}", dataLedgers);
         }
 
-        List<CompletableFuture<Void>> futures = dataLedgers.stream().map(dataLedger -> cleanTxnsOnLedger(dataLedger))
+        List<CompletableFuture<Void>> futures = dataLedgers.stream().map(this::cleanTxnsOnLedger)
                                                            .collect(Collectors.toList());
         return FutureUtil.waitForAll(futures).thenCompose(v -> removeCommittedLedgerFromIndex(dataLedgers));
     }
@@ -206,14 +206,14 @@ public class PersistentTransactionBuffer extends PersistentTopic implements Tran
         if (log.isDebugEnabled()) {
             log.debug("Start to clean ledger {}", dataledger);
         }
-        return txnCursor.getAllTxnsCommittedAtLedger(dataledger).thenCompose(txnIDS -> deleteTxns(txnIDS));
+        return txnCursor.getAllTxnsCommittedAtLedger(dataledger).thenCompose(this::deleteTxns);
     }
 
     private CompletableFuture<Void> deleteTxns(Set<TxnID> txnIDS) {
         if (log.isDebugEnabled()) {
             log.debug("Start delete txns {} under ledger", txnIDS);
         }
-        List<CompletableFuture<Void>> futures = txnIDS.stream().map(txnID -> deleteTxn(txnID))
+        List<CompletableFuture<Void>> futures = txnIDS.stream().map(this::deleteTxn)
                                                       .collect(Collectors.toList());
         return FutureUtil.waitForAll(futures);
     }

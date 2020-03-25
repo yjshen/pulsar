@@ -171,11 +171,7 @@ public class LocalRunner {
         this.instanceIdOffset = instanceIdOffset;
         this.runtimeEnv = runtimeEnv;
 
-        java.lang.Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                LocalRunner.this.stop();
-            }
-        });
+        java.lang.Runtime.getRuntime().addShutdownHook(new Thread(() -> LocalRunner.this.stop()));
     }
 
     public synchronized void stop() {
@@ -389,11 +385,7 @@ public class LocalRunner {
                     }
                 }
             }, 30000, 30000);
-            java.lang.Runtime.getRuntime().addShutdownHook(new Thread() {
-                public void run() {
-                    statusCheckTimer.cancel();
-                }
-            });
+            java.lang.Runtime.getRuntime().addShutdownHook(new Thread(() -> statusCheckTimer.cancel()));
         }
     }
 

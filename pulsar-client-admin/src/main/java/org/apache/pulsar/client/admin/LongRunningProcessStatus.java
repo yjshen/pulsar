@@ -30,7 +30,7 @@ public class LongRunningProcessStatus {
         RUNNING,
         SUCCESS,
         ERROR
-    };
+    }
 
     public Status status;
     public String lastError;

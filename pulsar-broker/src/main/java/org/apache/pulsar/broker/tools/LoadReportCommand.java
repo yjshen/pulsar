@@ -69,7 +69,7 @@ public class LoadReportCommand extends CliCommand<CliFlags, Flags> {
     @Override
     public Boolean apply(CliFlags globalFlags, String[] args) {
         CliSpec<Flags> newSpec = CliSpec.newBuilder(spec)
-            .withRunFunc(cmdFlags -> apply(cmdFlags))
+            .withRunFunc(this::apply)
             .build();
         return 0 == Cli.runCli(newSpec, args);
     }

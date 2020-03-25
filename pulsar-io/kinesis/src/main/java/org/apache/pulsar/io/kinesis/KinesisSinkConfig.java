@@ -94,7 +94,7 @@ public class KinesisSinkConfig extends BaseKinesisConfig implements Serializable
         /**
          * Kinesis sink sends message serialized in flat-buffer.
          */
-        FULL_MESSAGE_IN_FB;
+        FULL_MESSAGE_IN_FB
     }
     
 }

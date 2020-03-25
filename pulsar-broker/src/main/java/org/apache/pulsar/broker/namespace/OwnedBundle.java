@@ -52,7 +52,7 @@ public class OwnedBundle {
     public OwnedBundle(NamespaceBundle suName) {
         this.bundle = suName;
         IS_ACTIVE_UPDATER.set(this, TRUE);
-    };
+    }
 
     /**
      * Constructor to allow set initial active flag

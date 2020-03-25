@@ -246,8 +246,8 @@ public class LocalBookkeeperEnsemble {
         for (int i = 0; i < numberOfBookies; i++) {
 
             File bkDataDir = isNotBlank(bkDataDirName)
-                    ? Files.createDirectories(Paths.get(bkDataDirName + Integer.toString(i))).toFile()
-                    : Files.createTempDirectory("bk" + Integer.toString(i) + "test").toFile();
+                    ? Files.createDirectories(Paths.get(bkDataDirName + i)).toFile()
+                    : Files.createTempDirectory("bk" + i + "test").toFile();
 
             if (this.clearOldData) {
                 cleanDirectory(bkDataDir);

@@ -183,9 +183,7 @@ public final class PersistentDispatcherSingleActiveConsumer extends AbstractDisp
 
     @Override
     public void readEntriesComplete(final List<Entry> entries, Object obj) {
-        topic.getBrokerService().getTopicOrderedExecutor().executeOrdered(topicName, SafeRun.safeRun(() -> {
-            internalReadEntriesComplete(entries, obj);
-        }));
+        topic.getBrokerService().getTopicOrderedExecutor().executeOrdered(topicName, SafeRun.safeRun(() -> internalReadEntriesComplete(entries, obj)));
     }
 
     public synchronized void internalReadEntriesComplete(final List<Entry> entries, Object obj) {
@@ -253,9 +251,7 @@ public final class PersistentDispatcherSingleActiveConsumer extends AbstractDisp
                                     topic.getDispatchRateLimiter().get().tryDispatchPermit(totalMessages, totalBytes);
                                 }
 
-                                if (dispatchRateLimiter.isPresent()) {
-                                    dispatchRateLimiter.get().tryDispatchPermit(totalMessages, totalBytes);
-                                }
+                                dispatchRateLimiter.ifPresent(rateLimiter -> rateLimiter.tryDispatchPermit(totalMessages, totalBytes));
                             }
 
                             // Schedule a new read batch operation only after the previous batch has been written to the
@@ -282,9 +278,7 @@ public final class PersistentDispatcherSingleActiveConsumer extends AbstractDisp
 
     @Override
     public void consumerFlow(Consumer consumer, int additionalNumberOfMessages) {
-        topic.getBrokerService().getTopicOrderedExecutor().executeOrdered(topicName, SafeRun.safeRun(() -> {
-            internalConsumerFlow(consumer, additionalNumberOfMessages);
-        }));
+        topic.getBrokerService().getTopicOrderedExecutor().executeOrdered(topicName, SafeRun.safeRun(() -> internalConsumerFlow(consumer, additionalNumberOfMessages)));
     }
 
     private synchronized void internalConsumerFlow(Consumer consumer, int additionalNumberOfMessages) {
@@ -313,9 +307,7 @@ public final class PersistentDispatcherSingleActiveConsumer extends AbstractDisp
 
     @Override
     public void redeliverUnacknowledgedMessages(Consumer consumer) {
-        topic.getBrokerService().getTopicOrderedExecutor().executeOrdered(topicName, SafeRun.safeRun(() -> {
-            internalRedeliverUnacknowledgedMessages(consumer);
-        }));
+        topic.getBrokerService().getTopicOrderedExecutor().executeOrdered(topicName, SafeRun.safeRun(() -> internalRedeliverUnacknowledgedMessages(consumer)));
     }
 
     private synchronized void internalRedeliverUnacknowledgedMessages(Consumer consumer) {
@@ -458,9 +450,7 @@ public final class PersistentDispatcherSingleActiveConsumer extends AbstractDisp
 
     @Override
     public void readEntriesFailed(ManagedLedgerException exception, Object ctx) {
-        topic.getBrokerService().getTopicOrderedExecutor().executeOrdered(topicName, SafeRun.safeRun(() -> {
-            internalReadEntriesFailed(exception, ctx);
-        }));
+        topic.getBrokerService().getTopicOrderedExecutor().executeOrdered(topicName, SafeRun.safeRun(() -> internalReadEntriesFailed(exception, ctx)));
     }
 
     private synchronized void internalReadEntriesFailed(ManagedLedgerException exception, Object ctx) {
@@ -541,9 +531,7 @@ public final class PersistentDispatcherSingleActiveConsumer extends AbstractDisp
     @Override
     public CompletableFuture<Void> close() {
         IS_CLOSED_UPDATER.set(this, TRUE);
-        if (dispatchRateLimiter.isPresent()) {
-            dispatchRateLimiter.get().close();
-        }
+        dispatchRateLimiter.ifPresent(DispatchRateLimiter::close);
         return disconnectAllConsumers();
     }
 

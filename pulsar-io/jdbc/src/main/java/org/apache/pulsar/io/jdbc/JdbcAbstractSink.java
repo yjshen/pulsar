@@ -105,7 +105,7 @@ public abstract class JdbcAbstractSink<T> implements Sink<T> {
         isFlushing = new AtomicBoolean(false);
 
         flushExecutor = Executors.newScheduledThreadPool(1);
-        flushExecutor.scheduleAtFixedRate(() -> flush(), timeoutMs, timeoutMs, TimeUnit.MILLISECONDS);
+        flushExecutor.scheduleAtFixedRate(this::flush, timeoutMs, timeoutMs, TimeUnit.MILLISECONDS);
     }
 
     private void initStatement()  throws Exception {
@@ -150,7 +150,7 @@ public abstract class JdbcAbstractSink<T> implements Sink<T> {
             number = incomingList.size();
         }
         if (number == batchSize) {
-            flushExecutor.schedule(() -> flush(), 0, TimeUnit.MILLISECONDS);
+            flushExecutor.schedule(this::flush, 0, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -208,10 +208,10 @@ public abstract class JdbcAbstractSink<T> implements Sink<T> {
                     }
                 }
                 connection.commit();
-                swapList.forEach(tRecord -> tRecord.ack());
+                swapList.forEach(Record::ack);
             } catch (Exception e) {
                 log.error("Got exception ", e);
-                swapList.forEach(tRecord -> tRecord.fail());
+                swapList.forEach(Record::fail);
             }
 
             if (swapList.size() != count) {

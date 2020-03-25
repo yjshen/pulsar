@@ -120,9 +120,7 @@ public class KinesisSource extends AbstractKinesisConnector implements Source<by
         schedulerThread = new Thread(scheduler);
         schedulerThread.setDaemon(true);
         threadEx = null;
-        schedulerThread.setUncaughtExceptionHandler((t, ex) -> {
-            threadEx = ex;
-        });
+        schedulerThread.setUncaughtExceptionHandler((t, ex) -> threadEx = ex);
         schedulerThread.start();
     }
 

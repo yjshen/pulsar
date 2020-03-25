@@ -83,13 +83,13 @@ public class BacklogQuota {
             return Objects.equals(limit, other.limit) && Objects.equals(policy, other.policy);
         }
         return false;
-    };
+    }
 
     /**
      * Identifier to a backlog quota configuration (an instance of {@link BacklogQuota}).
      */
     public enum BacklogQuotaType {
-        destination_storage;
+        destination_storage
     }
 
     /**

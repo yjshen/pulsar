@@ -204,11 +204,7 @@ public class ManagedLedgerWriter {
 
         log.info("Created {} managed ledgers", managedLedgers.size());
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                printAggregatedStats();
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> printAggregatedStats()));
 
         Collections.shuffle(managedLedgers);
         AtomicBoolean isDone = new AtomicBoolean();

@@ -148,9 +148,7 @@ public class NonPersistentSubscription implements Subscription {
             }
 
             if (previousDispatcher != null) {
-                previousDispatcher.close().thenRun(() -> {
-                    log.info("[{}][{}] Successfully closed previous dispatcher", topicName, subName);
-                }).exceptionally(ex -> {
+                previousDispatcher.close().thenRun(() -> log.info("[{}][{}] Successfully closed previous dispatcher", topicName, subName)).exceptionally(ex -> {
                     log.error("[{}][{}] Failed to close previous dispatcher", topicName, subName, ex);
                     return null;
                 });
@@ -332,17 +330,13 @@ public class NonPersistentSubscription implements Subscription {
         CompletableFuture<Void> closeSubscriptionFuture = new CompletableFuture<>();
 
         if (closeIfConsumersConnected) {
-            this.disconnect().thenRun(() -> {
-                closeSubscriptionFuture.complete(null);
-            }).exceptionally(ex -> {
+            this.disconnect().thenRun(() -> closeSubscriptionFuture.complete(null)).exceptionally(ex -> {
                 log.error("[{}][{}] Error disconnecting and closing subscription", topicName, subName, ex);
                 closeSubscriptionFuture.completeExceptionally(ex);
                 return null;
             });
         } else {
-            this.close().thenRun(() -> {
-                closeSubscriptionFuture.complete(null);
-            }).exceptionally(exception -> {
+            this.close().thenRun(() -> closeSubscriptionFuture.complete(null)).exceptionally(exception -> {
                 log.error("[{}][{}] Error closing subscription", topicName, subName, exception);
                 closeSubscriptionFuture.completeExceptionally(exception);
                 return null;

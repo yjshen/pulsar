@@ -228,15 +228,12 @@ public class ModularLoadManagerImpl implements ModularLoadManager, ZooKeeperCach
         this.pulsar = pulsar;
         availableActiveBrokers = new ZooKeeperChildrenCache(pulsar.getLocalZkCache(),
                 LoadManager.LOADBALANCE_BROKERS_ROOT);
-        availableActiveBrokers.registerListener(new ZooKeeperCacheListener<Set<String>>() {
-            @Override
-            public void onUpdate(String path, Set<String> data, Stat stat) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Update Received for path {}", path);
-                }
-                reapDeadBrokerPreallocations(data);
-                scheduler.submit(ModularLoadManagerImpl.this::updateAll);
+        availableActiveBrokers.registerListener((path, data, stat) -> {
+            if (log.isDebugEnabled()) {
+                log.debug("Update Received for path {}", path);
             }
+            reapDeadBrokerPreallocations(data);
+            scheduler.submit(ModularLoadManagerImpl.this::updateAll);
         });
 
         brokerDataCache = new ZooKeeperDataCache<LocalBrokerData>(pulsar.getLocalZkCache()) {
@@ -272,9 +269,9 @@ public class ModularLoadManagerImpl implements ModularLoadManager, ZooKeeperCach
         refreshBrokerToFailureDomainMap();
         // register listeners for domain changes
         pulsar.getConfigurationCache().failureDomainListCache()
-                .registerListener((path, data, stat) -> scheduler.execute(() -> refreshBrokerToFailureDomainMap()));
+                .registerListener((path, data, stat) -> scheduler.execute(this::refreshBrokerToFailureDomainMap));
         pulsar.getConfigurationCache().failureDomainCache()
-                .registerListener((path, data, stat) -> scheduler.execute(() -> refreshBrokerToFailureDomainMap()));
+                .registerListener((path, data, stat) -> scheduler.execute(this::refreshBrokerToFailureDomainMap));
     }
 
     /**
@@ -578,23 +575,21 @@ public class ModularLoadManagerImpl implements ModularLoadManager, ZooKeeperCach
         for (LoadSheddingStrategy strategy : loadSheddingPipeline) {
             final Multimap<String, String> bundlesToUnload = strategy.findBundlesForUnloading(loadData, conf);
 
-            bundlesToUnload.asMap().forEach((broker, bundles) -> {
-                bundles.forEach(bundle -> {
-                    final String namespaceName = LoadManagerShared.getNamespaceNameFromBundleName(bundle);
-                    final String bundleRange = LoadManagerShared.getBundleRangeFromBundleName(bundle);
-                    if (!shouldAntiAffinityNamespaceUnload(namespaceName, bundleRange, broker)) {
-                        return;
-                    }
+            bundlesToUnload.asMap().forEach((broker, bundles) -> bundles.forEach(bundle -> {
+                final String namespaceName = LoadManagerShared.getNamespaceNameFromBundleName(bundle);
+                final String bundleRange = LoadManagerShared.getBundleRangeFromBundleName(bundle);
+                if (!shouldAntiAffinityNamespaceUnload(namespaceName, bundleRange, broker)) {
+                    return;
+                }
 
-                    log.info("[Overload shedder] Unloading bundle: {} from broker {}", bundle, broker);
-                    try {
-                        pulsar.getAdminClient().namespaces().unloadNamespaceBundle(namespaceName, bundleRange);
-                        loadData.getRecentlyUnloadedBundles().put(bundle, System.currentTimeMillis());
-                    } catch (PulsarServerException | PulsarAdminException e) {
-                        log.warn("Error when trying to perform load shedding on {} for broker {}", bundle, broker, e);
-                    }
-                });
-            });
+                log.info("[Overload shedder] Unloading bundle: {} from broker {}", bundle, broker);
+                try {
+                    pulsar.getAdminClient().namespaces().unloadNamespaceBundle(namespaceName, bundleRange);
+                    loadData.getRecentlyUnloadedBundles().put(bundle, System.currentTimeMillis());
+                } catch (PulsarServerException | PulsarAdminException e) {
+                    log.warn("Error when trying to perform load shedding on {} for broker {}", bundle, broker, e);
+                }
+            }));
         }
     }
 

@@ -185,9 +185,7 @@ public class PartitionedProducerImpl<T> extends ProducerBase<T> {
 
     @Override
     public CompletableFuture<Void> flushAsync() {
-        List<CompletableFuture<Void>> flushFutures =
-            producers.stream().map(ProducerImpl::flushAsync).collect(Collectors.toList());
-        return CompletableFuture.allOf(flushFutures.toArray(new CompletableFuture[flushFutures.size()]));
+        return CompletableFuture.allOf(producers.stream().map(ProducerImpl::flushAsync).toArray(CompletableFuture[]::new));
     }
 
     @Override
@@ -317,7 +315,7 @@ public class PartitionedProducerImpl<T> extends ProducerBase<T> {
                             log.warn("[{}] fail create producers for extended partitions. old: {}, new: {}",
                                 topic, oldPartitionNumber, currentPartitionNumber);
                             List<ProducerImpl<T>> sublist = producers.subList(oldPartitionNumber, producers.size());
-                            sublist.forEach(newProducer -> newProducer.closeAsync());
+                            sublist.forEach(ProducerImpl::closeAsync);
                             sublist.clear();
                             future.completeExceptionally(ex);
                             return null;

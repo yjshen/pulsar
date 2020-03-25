@@ -260,7 +260,7 @@ public final class WorkerUtils {
                     // Filter out values that are NaN
                     Map<String, Double> statsDataMap = metricsData.getUserMetricsMap().entrySet().stream()
                             .filter(stringDoubleEntry -> !stringDoubleEntry.getValue().isNaN())
-                            .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
                     functionInstanceStatsData.setUserMetrics(statsDataMap);
 

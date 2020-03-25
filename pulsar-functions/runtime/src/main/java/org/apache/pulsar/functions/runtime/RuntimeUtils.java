@@ -289,7 +289,7 @@ public class RuntimeUtils {
             if (instanceConfig.getFunctionDetails().getResources() != null) {
                 Function.Resources resources = instanceConfig.getFunctionDetails().getResources();
                 if (resources.getRam() != 0) {
-                    args.add("-Xmx" + String.valueOf(resources.getRam()));
+                    args.add("-Xmx" + resources.getRam());
                 }
             }
             args.add("org.apache.pulsar.functions.instance.JavaInstanceMain");

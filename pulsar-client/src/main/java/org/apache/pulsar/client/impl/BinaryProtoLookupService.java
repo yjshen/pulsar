@@ -111,9 +111,7 @@ public class BinaryProtoLookupService implements LookupService {
                     // (2) redirect to given address if response is: redirect
                     if (lookupDataResult.redirect) {
                         findBroker(responseBrokerAddress, lookupDataResult.authoritative, topicName)
-                                .thenAccept(addressPair -> {
-                                    addressFuture.complete(addressPair);
-                                }).exceptionally((lookupException) -> {
+                                .thenAccept(addressFuture::complete).exceptionally((lookupException) -> {
                                     // lookup failed
                                     log.warn("[{}] lookup failed : {}", topicName.toString(),
                                             lookupException.getMessage(), lookupException);

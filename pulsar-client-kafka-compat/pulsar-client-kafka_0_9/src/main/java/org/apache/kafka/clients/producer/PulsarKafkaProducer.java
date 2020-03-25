@@ -182,7 +182,7 @@ public class PulsarKafkaProducer<K, V> implements Producer<K, V> {
         org.apache.pulsar.client.api.Producer<byte[]> producer;
 
         try {
-            producer = producers.computeIfAbsent(producerRecord.topic(), topic -> createNewProducer(topic));
+            producer = producers.computeIfAbsent(producerRecord.topic(), this::createNewProducer);
         } catch (Exception e) {
             if (callback != null) {
                 callback.onCompletion(null, e);
@@ -195,9 +195,7 @@ public class PulsarKafkaProducer<K, V> implements Producer<K, V> {
         TypedMessageBuilder<byte[]> messageBuilder = buildMessage(producer, producerRecord);
 
         CompletableFuture<RecordMetadata> future = new CompletableFuture<>();
-        messageBuilder.sendAsync().thenAccept((messageId) -> {
-            future.complete(getRecordMetadata(producerRecord.topic(), messageId));
-        }).exceptionally(ex -> {
+        messageBuilder.sendAsync().thenAccept((messageId) -> future.complete(getRecordMetadata(producerRecord.topic(), messageId))).exceptionally(ex -> {
             future.completeExceptionally(ex);
             return null;
         });
@@ -216,7 +214,7 @@ public class PulsarKafkaProducer<K, V> implements Producer<K, V> {
     @Override
     public void flush() {
         producers.values().stream()
-                .map(p -> p.flushAsync())
+                .map(org.apache.pulsar.client.api.Producer::flushAsync)
                 .collect(Collectors.toList())
                 .forEach(CompletableFuture::join);
     }

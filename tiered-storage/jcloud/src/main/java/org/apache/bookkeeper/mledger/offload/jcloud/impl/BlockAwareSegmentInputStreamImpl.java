@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
+import io.netty.util.ReferenceCounted;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -169,7 +170,7 @@ public class BlockAwareSegmentInputStreamImpl extends BlockAwareSegmentInputStre
         super.close();
         dataBlockHeaderStream.close();
         if (!entriesByteBuf.isEmpty()) {
-            entriesByteBuf.forEach(buf -> buf.release());
+            entriesByteBuf.forEach(ReferenceCounted::release);
             entriesByteBuf.clear();
         }
     }

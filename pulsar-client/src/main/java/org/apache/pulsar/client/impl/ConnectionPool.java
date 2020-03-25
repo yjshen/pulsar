@@ -95,22 +95,20 @@ public class ConnectionPool implements Closeable {
     }
 
     void closeAllConnections() {
-        pool.values().forEach(map -> {
-            map.values().forEach(future -> {
-                if (future.isDone()) {
-                    if (!future.isCompletedExceptionally()) {
-                        // Connection was already created successfully, the join will not throw any exception
-                        future.join().close();
-                    } else {
-                        // If the future already failed, there's nothing we have to do
-                    }
+        pool.values().forEach(map -> map.values().forEach(future -> {
+            if (future.isDone()) {
+                if (!future.isCompletedExceptionally()) {
+                    // Connection was already created successfully, the join will not throw any exception
+                    future.join().close();
                 } else {
-                    // The future is still pending: just register to make sure it gets closed if the operation will
-                    // succeed
-                    future.thenAccept(ClientCnx::close);
+                    // If the future already failed, there's nothing we have to do
                 }
-            });
-        });
+            } else {
+                // The future is still pending: just register to make sure it gets closed if the operation will
+                // succeed
+                future.thenAccept(ClientCnx::close);
+            }
+        }));
     }
 
     /**
@@ -227,15 +225,11 @@ public class ConnectionPool implements Closeable {
     private CompletableFuture<Channel> connectToResolvedAddresses(Iterator<InetAddress> unresolvedAddresses, int port) {
         CompletableFuture<Channel> future = new CompletableFuture<>();
 
-        connectToAddress(unresolvedAddresses.next(), port).thenAccept(channel -> {
-            // Successfully connected to server
-            future.complete(channel);
-        }).exceptionally(exception -> {
+        // Successfully connected to server
+        connectToAddress(unresolvedAddresses.next(), port).thenAccept(future::complete).exceptionally(exception -> {
             if (unresolvedAddresses.hasNext()) {
                 // Try next IP address
-                connectToResolvedAddresses(unresolvedAddresses, port).thenAccept(channel -> {
-                    future.complete(channel);
-                }).exceptionally(ex -> {
+                connectToResolvedAddresses(unresolvedAddresses, port).thenAccept(future::complete).exceptionally(ex -> {
                     // This is already unwinding the recursive call
                     future.completeExceptionally(ex);
                     return null;

@@ -49,6 +49,6 @@ public class ExecutorProvider {
     }
 
     public void shutdownNow() {
-        executors.forEach(executor -> executor.shutdownNow());
+        executors.forEach(ExecutorService::shutdownNow);
     }
 }

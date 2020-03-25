@@ -172,7 +172,7 @@ public class MembershipManager implements AutoCloseable, ConsumerEventListener {
                               SchedulerManager schedulerManager) {
 
         Set<String> currentMembership = this.getCurrentMembership().stream()
-                .map(entry -> entry.getWorkerId()).collect(Collectors.toSet());
+                .map(WorkerInfo::getWorkerId).collect(Collectors.toSet());
         List<Function.FunctionMetaData> functionMetaDataList = functionMetaDataManager.getAllFunctionMetaData();
         Map<String, Function.FunctionMetaData> functionMetaDataMap = new HashMap<>();
         for (Function.FunctionMetaData entry : functionMetaDataList) {
@@ -217,7 +217,7 @@ public class MembershipManager implements AutoCloseable, ConsumerEventListener {
                     currentAssignments);
 
             Set<Function.Instance> assignedInstances = assignments.stream()
-                    .map(assignment -> assignment.getInstance())
+                    .map(Function.Assignment::getInstance)
                     .collect(Collectors.toSet());
 
             Set<Function.Instance> instances = new HashSet<>(SchedulerManager.computeInstances(functionMetaData, functionRuntimeManager.getRuntimeFactory().externallyManaged()));

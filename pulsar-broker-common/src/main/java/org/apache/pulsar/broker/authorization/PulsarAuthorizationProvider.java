@@ -143,9 +143,7 @@ public class PulsarAuthorizationProvider implements AuthorizationProvider {
                     }
                 }
                 // check namespace and topic level consume-permissions
-                checkAuthorization(topicName, role, AuthAction.consume).thenAccept(isAuthorized -> {
-                    permissionFuture.complete(isAuthorized);
-                });
+                checkAuthorization(topicName, role, AuthAction.consume).thenAccept(permissionFuture::complete);
             }).exceptionally(ex -> {
                 log.warn("Client with Role - {} failed to get permissions for topic - {}. {}", role, topicName,
                         ex.getMessage());

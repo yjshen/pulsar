@@ -54,7 +54,7 @@ public class AuthenticationProviderBasic implements AuthenticationProvider {
 
         @Cleanup BufferedReader reader = new BufferedReader(new FileReader(confFile));
         users = new HashMap<>();
-        for (String line : reader.lines().toArray(s -> new String[s])) {
+        for (String line : reader.lines().toArray(String[]::new)) {
             List<String> splitLine = Arrays.asList(line.split(":"));
             if (splitLine.size() != 2) {
                 throw new IOException("The format of the password auth conf file is invalid");

@@ -164,7 +164,7 @@ public class ReaderHandler extends AbstractWebSocketHandler {
             int pending = pendingMessages.incrementAndGet();
             if (pending < maxPendingMessages) {
                 // Start next read in a separate thread to avoid recursion
-                service.getExecutor().execute(() -> receiveMessage());
+                service.getExecutor().execute(this::receiveMessage);
             }
         }).exceptionally(exception -> {
             if (exception.getCause() instanceof AlreadyClosedException) {

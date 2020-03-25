@@ -154,7 +154,7 @@ public class UnAckedMessageTracker implements Closeable {
         writeLock.lock();
         try {
             messageIdPartitionMap.clear();
-            timePartitions.forEach(tp -> tp.clear());
+            timePartitions.forEach(ConcurrentOpenHashSet::clear);
         } finally {
             writeLock.unlock();
         }

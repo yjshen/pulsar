@@ -179,7 +179,7 @@ public class PulsarKafkaConsumer<K, V> implements Consumer<K, V>, MessageListene
                 ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, ConsumerInterceptor.class);
 
         this.properties = new Properties();
-        consumerConfig.originals().forEach((k, v) -> properties.put(k, v));
+        consumerConfig.originals().forEach(properties::put);
         ClientBuilder clientBuilder = PulsarClientKafkaConfig.getClientBuilder(properties);
         // Since this client instance is going to be used just for the consumers, we can enable Nagle to group
         // all the acknowledgments sent to broker within a short time frame

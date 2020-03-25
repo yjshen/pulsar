@@ -102,7 +102,7 @@ public class MongoSink implements Sink<byte[]> {
 
         incomingList = Lists.newArrayList();
         flushExecutor = Executors.newScheduledThreadPool(1);
-        flushExecutor.scheduleAtFixedRate(() -> flush(),
+        flushExecutor.scheduleAtFixedRate(this::flush,
                 mongoConfig.getBatchTimeMs(), mongoConfig.getBatchTimeMs(), TimeUnit.MILLISECONDS);
     }
 
@@ -122,7 +122,7 @@ public class MongoSink implements Sink<byte[]> {
         }
 
         if (currentSize == mongoConfig.getBatchSize()) {
-            flushExecutor.submit(() -> flush());
+            flushExecutor.submit(this::flush);
         }
     }
 
@@ -187,9 +187,7 @@ public class MongoSink implements Sink<byte[]> {
 
                 if (t instanceof MongoBulkWriteException) {
                     // With this exception, we are aware of the items that have not been inserted.
-                    ((MongoBulkWriteException) t).getWriteErrors().forEach(err -> {
-                        idxToFail.add(err.getIndex());
-                    });
+                    ((MongoBulkWriteException) t).getWriteErrors().forEach(err -> idxToFail.add(err.getIndex()));
                     idxToAck.removeAll(idxToFail);
                 } else {
                     idxToFail.addAll(idxToAck);

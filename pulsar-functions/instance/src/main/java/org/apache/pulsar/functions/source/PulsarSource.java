@@ -104,10 +104,8 @@ public class PulsarSource<T> extends PushSource<T> implements MessageListener<T>
             return cb.subscribeAsync();
         }).collect(Collectors.toList()).stream().map(CompletableFuture::join).collect(Collectors.toList());
 
-        inputTopics = inputConsumers.stream().flatMap(c -> {
-            return (c instanceof MultiTopicsConsumerImpl) ? ((MultiTopicsConsumerImpl<?>) c).getTopics().stream()
-                    : Collections.singletonList(c.getTopic()).stream();
-        }).collect(Collectors.toList());
+        inputTopics = inputConsumers.stream().flatMap(c -> (c instanceof MultiTopicsConsumerImpl) ? ((MultiTopicsConsumerImpl<?>) c).getTopics().stream()
+                : Collections.singletonList(c.getTopic()).stream()).collect(Collectors.toList());
     }
 
     @Override

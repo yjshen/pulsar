@@ -494,9 +494,7 @@ public class PulsarClientImpl implements PulsarClient {
                 consumers.put(reader.getConsumer(), Boolean.TRUE);
             }
 
-            consumerSubscribedFuture.thenRun(() -> {
-                readerFuture.complete(reader);
-            }).exceptionally(ex -> {
+            consumerSubscribedFuture.thenRun(() -> readerFuture.complete(reader)).exceptionally(ex -> {
                 log.warn("[{}] Failed to get create topic reader", topic, ex);
                 readerFuture.completeExceptionally(ex);
                 return null;

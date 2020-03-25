@@ -248,7 +248,7 @@ public class PersistentTopic extends AbstractTopic implements Topic, AddEntryCal
         try {
             Policies policies = brokerService.pulsar().getConfigurationCache().policiesCache()
                     .get(AdminResource.path(POLICIES, TopicName.get(topic).getNamespace()))
-                    .orElseThrow(() -> new KeeperException.NoNodeException());
+                    .orElseThrow(KeeperException.NoNodeException::new);
             this.isEncryptionRequired = policies.encryption_required;
 
             setSchemaCompatibilityStrategy(policies);
@@ -455,7 +455,7 @@ public class PersistentTopic extends AbstractTopic implements Topic, AddEntryCal
         try {
             Policies policies = brokerService.pulsar().getConfigurationCache().policiesCache()
                     .get(AdminResource.path(POLICIES, TopicName.get(topic).getNamespace()))
-                    .orElseThrow(() -> new KeeperException.NoNodeException());
+                    .orElseThrow(KeeperException.NoNodeException::new);
             if (policies.replication_clusters != null) {
                 Set<String> configuredClusters = Sets.newTreeSet(policies.replication_clusters);
                 replicators.forEach((region, replicator) -> {
@@ -847,9 +847,7 @@ public class PersistentTopic extends AbstractTopic implements Topic, AddEntryCal
                 replicators.forEach((cluster, replicator) -> futures.add(replicator.disconnect()));
                 producers.values().forEach(producer -> futures.add(producer.disconnect()));
                 subscriptions.forEach((s, sub) -> futures.add(sub.disconnect()));
-                FutureUtil.waitForAll(futures).thenRun(() -> {
-                    closeClientFuture.complete(null);
-                }).exceptionally(ex -> {
+                FutureUtil.waitForAll(futures).thenRun(() -> closeClientFuture.complete(null)).exceptionally(ex -> {
                     log.error("[{}] Error closing clients", topic, ex);
                     isFenced = false;
                     closeClientFuture.completeExceptionally(ex);
@@ -894,13 +892,9 @@ public class PersistentTopic extends AbstractTopic implements Topic, AddEntryCal
                                 public void deleteLedgerComplete(Object ctx) {
                                     brokerService.removeTopicFromCache(topic);
 
-                                    if (dispatchRateLimiter.isPresent()) {
-                                        dispatchRateLimiter.get().close();
-                                    }
+                                    dispatchRateLimiter.ifPresent(DispatchRateLimiter::close);
 
-                                    if (subscribeRateLimiter.isPresent()) {
-                                        subscribeRateLimiter.get().close();
-                                    }
+                                    subscribeRateLimiter.ifPresent(SubscribeRateLimiter::close);
 
                                     log.info("[{}] Topic deleted", topic);
                                     deleteFuture.complete(null);
@@ -982,18 +976,11 @@ public class PersistentTopic extends AbstractTopic implements Topic, AddEntryCal
                     // Everything is now closed, remove the topic from map
                     brokerService.removeTopicFromCache(topic);
 
-                    ReplicatedSubscriptionsController ctrl = replicatedSubscriptionsController.orElse(null);
-                    if (ctrl != null) {
-                        ctrl.close();
-                    }
+                    replicatedSubscriptionsController.ifPresent(ReplicatedSubscriptionsController::close);
 
-                    if (dispatchRateLimiter.isPresent()) {
-                        dispatchRateLimiter.get().close();
-                    }
+                    dispatchRateLimiter.ifPresent(DispatchRateLimiter::close);
 
-                    if (subscribeRateLimiter.isPresent()) {
-                        subscribeRateLimiter.get().close();
-                    }
+                    subscribeRateLimiter.ifPresent(SubscribeRateLimiter::close);
 
                     log.info("[{}] Topic closed", topic);
                     closeFuture.complete(null);
@@ -1069,7 +1056,7 @@ public class PersistentTopic extends AbstractTopic implements Topic, AddEntryCal
         try {
             policies = brokerService.pulsar().getConfigurationCache().policiesCache()
                     .get(AdminResource.path(POLICIES, name.getNamespace()))
-                    .orElseThrow(() -> new KeeperException.NoNodeException());
+                    .orElseThrow(KeeperException.NoNodeException::new);
         } catch (Exception e) {
             CompletableFuture<Void> future = new CompletableFuture<>();
             future.completeExceptionally(new ServerMetadataException(e));
@@ -1131,7 +1118,7 @@ public class PersistentTopic extends AbstractTopic implements Topic, AddEntryCal
         try {
             policies = brokerService.pulsar().getConfigurationCache().policiesCache()
                     .get(AdminResource.path(POLICIES, name.getNamespace()))
-                    .orElseThrow(() -> new KeeperException.NoNodeException());
+                    .orElseThrow(KeeperException.NoNodeException::new);
             int defaultTTL = brokerService.pulsar().getConfiguration().getTtlDurationDefaultInSeconds();
             int message_ttl_in_seconds = (policies.message_ttl_in_seconds <= 0 && defaultTTL > 0) ? defaultTTL
                     : policies.message_ttl_in_seconds;
@@ -1156,7 +1143,7 @@ public class PersistentTopic extends AbstractTopic implements Topic, AddEntryCal
         try {
             Policies policies = brokerService.pulsar().getConfigurationCache().policiesCache()
                 .get(AdminResource.path(POLICIES, name.getNamespace()))
-                .orElseThrow(() -> new KeeperException.NoNodeException());
+                .orElseThrow(KeeperException.NoNodeException::new);
 
 
             if (policies.compaction_threshold != 0
@@ -1230,23 +1217,19 @@ public class PersistentTopic extends AbstractTopic implements Topic, AddEntryCal
 
         String name = PersistentReplicator.getReplicatorName(replicatorPrefix, remoteCluster);
 
-        replicators.get(remoteCluster).disconnect().thenRun(() -> {
+        replicators.get(remoteCluster).disconnect().thenRun(() -> ledger.asyncDeleteCursor(name, new DeleteCursorCallback() {
+            @Override
+            public void deleteCursorComplete(Object ctx) {
+                replicators.remove(remoteCluster);
+                future.complete(null);
+            }
 
-            ledger.asyncDeleteCursor(name, new DeleteCursorCallback() {
-                @Override
-                public void deleteCursorComplete(Object ctx) {
-                    replicators.remove(remoteCluster);
-                    future.complete(null);
-                }
-
-                @Override
-                public void deleteCursorFailed(ManagedLedgerException exception, Object ctx) {
-                    log.error("[{}] Failed to delete cursor {} {}", topic, name, exception.getMessage(), exception);
-                    future.completeExceptionally(new PersistenceException(exception));
-                }
-            }, null);
-
-        }).exceptionally(e -> {
+            @Override
+            public void deleteCursorFailed(ManagedLedgerException exception, Object ctx) {
+                log.error("[{}] Failed to delete cursor {} {}", topic, name, exception.getMessage(), exception);
+                future.completeExceptionally(new PersistenceException(exception));
+            }
+        }, null)).exceptionally(e -> {
             log.error("[{}] Failed to close replication producer {} {}", topic, name, e.getMessage(), e);
             future.completeExceptionally(e);
             return null;
@@ -2098,8 +2081,8 @@ public class PersistentTopic extends AbstractTopic implements Topic, AddEntryCal
             ctrl = replicatedSubscriptionsController.get();
         }
 
-        ctrl.receivedReplicatedSubscriptionMarker(position, markerType, payload);;
-     }
+        ctrl.receivedReplicatedSubscriptionMarker(position, markerType, payload);
+    }
 
     Optional<ReplicatedSubscriptionsController> getReplicatedSubscriptionController() {
         return replicatedSubscriptionsController;

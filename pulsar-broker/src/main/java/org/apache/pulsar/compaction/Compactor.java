@@ -65,19 +65,17 @@ public abstract class Compactor {
     private CompletableFuture<Long> compactAndCloseReader(RawReader reader) {
         CompletableFuture<Long> promise = new CompletableFuture<>();
         doCompaction(reader, bk).whenComplete(
-                (ledgerId, exception) -> {
-                    reader.closeAsync().whenComplete((v, exception2) -> {
-                            if (exception2 != null) {
-                                log.warn("Error closing reader handle {}, ignoring", reader, exception2);
-                            }
-                            if (exception != null) {
-                                // complete with original exception
-                                promise.completeExceptionally(exception);
-                            } else {
-                                promise.complete(ledgerId);
-                            }
-                        });
-                });
+                (ledgerId, exception) -> reader.closeAsync().whenComplete((v, exception2) -> {
+                        if (exception2 != null) {
+                            log.warn("Error closing reader handle {}, ignoring", reader, exception2);
+                        }
+                        if (exception != null) {
+                            // complete with original exception
+                            promise.completeExceptionally(exception);
+                        } else {
+                            promise.complete(ledgerId);
+                        }
+                    }));
         return promise;
     }
 

@@ -151,7 +151,7 @@ public class ConcurrentOpenHashSet<V> {
      */
     public List<V> values() {
         List<V> values = Lists.newArrayList();
-        forEach(value -> values.add(value));
+        forEach(values::add);
         return values;
     }
 

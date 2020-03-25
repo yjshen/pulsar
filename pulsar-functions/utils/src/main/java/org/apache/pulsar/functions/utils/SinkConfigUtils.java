@@ -109,22 +109,18 @@ public class SinkConfigUtils {
                             .build());
         }
         if (sinkConfig.getTopicToSerdeClassName() != null) {
-            sinkConfig.getTopicToSerdeClassName().forEach((topicName, serde) -> {
-                sourceSpecBuilder.putInputSpecs(topicName,
-                        Function.ConsumerSpec.newBuilder()
-                                .setSerdeClassName(serde == null ? "" : serde)
-                                .setIsRegexPattern(false)
-                                .build());
-            });
+            sinkConfig.getTopicToSerdeClassName().forEach((topicName, serde) -> sourceSpecBuilder.putInputSpecs(topicName,
+                    Function.ConsumerSpec.newBuilder()
+                            .setSerdeClassName(serde == null ? "" : serde)
+                            .setIsRegexPattern(false)
+                            .build()));
         }
         if (sinkConfig.getTopicToSchemaType() != null) {
-            sinkConfig.getTopicToSchemaType().forEach((topicName, schemaType) -> {
-                sourceSpecBuilder.putInputSpecs(topicName,
-                        Function.ConsumerSpec.newBuilder()
-                                .setSchemaType(schemaType == null ? "" : schemaType)
-                                .setIsRegexPattern(false)
-                                .build());
-            });
+            sinkConfig.getTopicToSchemaType().forEach((topicName, schemaType) -> sourceSpecBuilder.putInputSpecs(topicName,
+                    Function.ConsumerSpec.newBuilder()
+                            .setSchemaType(schemaType == null ? "" : schemaType)
+                            .setIsRegexPattern(false)
+                            .build()));
         }
         if (sinkConfig.getInputSpecs() != null) {
             sinkConfig.getInputSpecs().forEach((topic, spec) -> {
@@ -505,10 +501,8 @@ public class SinkConfigUtils {
         }
 
         if (newConfig.getInputs() != null) {
-            newConfig.getInputs().forEach((topicName -> {
-                newConfig.getInputSpecs().put(topicName,
-                        ConsumerConfig.builder().isRegexPattern(false).build());
-            }));
+            newConfig.getInputs().forEach((topicName -> newConfig.getInputSpecs().put(topicName,
+                    ConsumerConfig.builder().isRegexPattern(false).build())));
         }
         if (newConfig.getTopicsPattern() != null && !newConfig.getTopicsPattern().isEmpty()) {
             newConfig.getInputSpecs().put(newConfig.getTopicsPattern(),
@@ -517,22 +511,18 @@ public class SinkConfigUtils {
                             .build());
         }
         if (newConfig.getTopicToSerdeClassName() != null) {
-            newConfig.getTopicToSerdeClassName().forEach((topicName, serdeClassName) -> {
-                newConfig.getInputSpecs().put(topicName,
-                        ConsumerConfig.builder()
-                                .serdeClassName(serdeClassName)
-                                .isRegexPattern(false)
-                                .build());
-            });
+            newConfig.getTopicToSerdeClassName().forEach((topicName, serdeClassName) -> newConfig.getInputSpecs().put(topicName,
+                    ConsumerConfig.builder()
+                            .serdeClassName(serdeClassName)
+                            .isRegexPattern(false)
+                            .build()));
         }
         if (newConfig.getTopicToSchemaType() != null) {
-            newConfig.getTopicToSchemaType().forEach((topicName, schemaClassname) -> {
-                newConfig.getInputSpecs().put(topicName,
-                        ConsumerConfig.builder()
-                                .schemaType(schemaClassname)
-                                .isRegexPattern(false)
-                                .build());
-            });
+            newConfig.getTopicToSchemaType().forEach((topicName, schemaClassname) -> newConfig.getInputSpecs().put(topicName,
+                    ConsumerConfig.builder()
+                            .schemaType(schemaClassname)
+                            .isRegexPattern(false)
+                            .build()));
         }
         if (!newConfig.getInputSpecs().isEmpty()) {
             newConfig.getInputSpecs().forEach((topicName, consumerConfig) -> {

@@ -84,7 +84,7 @@ public class TransactionCursorImpl implements TransactionCursor {
     @Override
     public CompletableFuture<Void> abortTxn(TxnID txnID) {
         return getTxnMeta(txnID, false)
-            .thenCompose(meta -> meta.abortTxn())
+            .thenCompose(TransactionMeta::abortTxn)
             .thenApply(meta -> null);
     }
 
@@ -114,9 +114,7 @@ public class TransactionCursorImpl implements TransactionCursor {
                 removeFuture.completeExceptionally(new NoTxnsCommittedAtLedgerException(
                     "Transaction committed ledger id `" + ledgerId + "` doesn't exist"));
             } else {
-                txnIDS.forEach(txnID -> {
-                    txnIndex.remove(txnID);
-                });
+                txnIDS.forEach(txnIndex::remove);
                 removeFuture.complete(null);
             }
         }

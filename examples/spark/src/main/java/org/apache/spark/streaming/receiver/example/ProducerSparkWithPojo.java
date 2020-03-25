@@ -47,7 +47,7 @@ public class ProducerSparkWithPojo {
 
 		try (PulsarClient client = PulsarClient.builder().serviceUrl(args[0]).build()) {
 			try (Producer<SensorReading> producer = client.newProducer(JSONSchema.of(SensorReading.class))
-					.topic(args[1]).sendTimeout(3, TimeUnit.SECONDS).create();) {
+					.topic(args[1]).sendTimeout(3, TimeUnit.SECONDS).create()) {
 				for (int i = 0; i < 100; i++) {
 					SensorReading rd = new SensorReading(i, "message " + i);
 					producer.send(rd);

@@ -200,9 +200,7 @@ public class AuthenticationSasl implements Authentication, EncodedAuthentication
             authData,
             previousResHeaders);
 
-        headers.forEach(entry -> {
-            builder.header(entry.getKey(), entry.getValue());
-        });
+        headers.forEach(entry -> builder.header(entry.getKey(), entry.getValue()));
         return builder;
     }
 

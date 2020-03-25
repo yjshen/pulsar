@@ -67,13 +67,10 @@ public class FlinkPulsarBatchSinkExample {
         DataSet<String> textDS = env.fromElements(EINSTEIN_QUOTE);
 
         // convert sentences to words
-        textDS.flatMap(new FlatMapFunction<String, WordWithCount>() {
-            @Override
-            public void flatMap(String value, Collector<WordWithCount> out) throws Exception {
-                String[] words = value.toLowerCase().split(" ");
-                for(String word: words) {
-                    out.collect(new WordWithCount(word.replace(".", ""), 1));
-                }
+        textDS.flatMap((FlatMapFunction<String, WordWithCount>) (value, out) -> {
+            String[] words = value.toLowerCase().split(" ");
+            for(String word: words) {
+                out.collect(new WordWithCount(word.replace(".", ""), 1));
             }
         })
 
@@ -81,20 +78,10 @@ public class FlinkPulsarBatchSinkExample {
         .filter(wordWithCount -> wordWithCount.word.length() > 4)
 
         // group the words
-        .groupBy(new KeySelector<WordWithCount, String>() {
-            @Override
-            public String getKey(WordWithCount wordWithCount) throws Exception {
-                return wordWithCount.word;
-            }
-        })
+        .groupBy((KeySelector<WordWithCount, String>) wordWithCount -> wordWithCount.word)
 
         // sum the word counts
-        .reduce(new ReduceFunction<WordWithCount>() {
-            @Override
-            public WordWithCount reduce(WordWithCount wordWithCount1, WordWithCount wordWithCount2) throws Exception {
-                return  new WordWithCount(wordWithCount1.word, wordWithCount1.count + wordWithCount2.count);
-            }
-        })
+        .reduce((ReduceFunction<WordWithCount>) (wordWithCount1, wordWithCount2) -> new WordWithCount(wordWithCount1.word, wordWithCount1.count + wordWithCount2.count))
 
         // write batch data to Pulsar
         .output(pulsarOutputFormat);

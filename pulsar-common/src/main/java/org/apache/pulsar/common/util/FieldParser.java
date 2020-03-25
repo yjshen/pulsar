@@ -312,9 +312,7 @@ public final class FieldParser {
      */
     public static <T> List<T> stringToList(String val, Class<T> type) {
         String[] tokens = trim(val).split(",");
-        return Arrays.stream(tokens).map(t -> {
-            return convert(t, type);
-        }).collect(Collectors.toList());
+        return Arrays.stream(tokens).map(t -> convert(t, type)).collect(Collectors.toList());
     }
 
     /**
@@ -328,9 +326,7 @@ public final class FieldParser {
      */
     public static <T> Set<T> stringToSet(String val, Class<T> type) {
         String[] tokens = trim(val).split(",");
-        return Arrays.stream(tokens).map(t -> {
-            return convert(t, type);
-        }).collect(Collectors.toSet());
+        return Arrays.stream(tokens).map(t -> convert(t, type)).collect(Collectors.toSet());
     }
 
     private static <K, V> Map<K, V> stringToMap(String strValue, Class<K> keyType, Class<V> valueType) {

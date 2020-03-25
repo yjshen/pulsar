@@ -87,7 +87,7 @@ public class NamespaceBundleFactory implements ZooKeeperCacheListener<LocalPolic
                 // If no policies defined for namespace, assume 1 single bundle
                 BundlesData bundlesData = result.map(Entry::getKey).map(p -> p.bundles).orElse(null);
                 NamespaceBundles namespaceBundles = getBundles(
-                    namespace, bundlesData, result.map(Entry::getValue).map(s -> s.getVersion()).orElse(-1));
+                    namespace, bundlesData, result.map(Entry::getValue).map(Stat::getVersion).orElse(-1));
 
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("[{}] Get bundles from getLocalZkCacheService: path: {},  bundles: {}, version: {}",

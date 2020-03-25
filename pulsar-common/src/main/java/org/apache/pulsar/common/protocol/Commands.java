@@ -1108,9 +1108,7 @@ public class Commands {
         CommandGetSchema.Builder schema = CommandGetSchema.newBuilder()
             .setRequestId(requestId);
         schema.setTopic(topic);
-        if (version.isPresent()) {
-            schema.setSchemaVersion(ByteString.copyFrom(version.get().bytes()));
-        }
+        version.ifPresent(schemaVersion -> schema.setSchemaVersion(ByteString.copyFrom(schemaVersion.bytes())));
 
         CommandGetSchema getSchema = schema.build();
 
@@ -1742,7 +1740,7 @@ public class Commands {
      */
     public enum ChecksumType {
         Crc32c,
-        None;
+        None
     }
 
     public static boolean peerSupportsGetLastMessageId(int peerVersion) {

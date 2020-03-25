@@ -146,7 +146,7 @@ public class PersistentSubscription implements Subscription {
         this.cursor = cursor;
         this.topicName = topic.getName();
         this.subName = subscriptionName;
-        this.fullName = MoreObjects.toStringHelper(this).add("topic", topicName).add("name", subName).toString();;
+        this.fullName = MoreObjects.toStringHelper(this).add("topic", topicName).add("name", subName).toString();
         this.expiryMonitor = new PersistentMessageExpiryMonitor(topicName, subscriptionName, cursor);
         this.setReplicated(replicated);
         IS_FENCED_UPDATER.set(this, FALSE);
@@ -242,9 +242,7 @@ public class PersistentSubscription implements Subscription {
             }
 
             if (previousDispatcher != null) {
-                previousDispatcher.close().thenRun(() -> {
-                    log.info("[{}][{}] Successfully closed previous dispatcher", topicName, subName);
-                }).exceptionally(ex -> {
+                previousDispatcher.close().thenRun(() -> log.info("[{}][{}] Successfully closed previous dispatcher", topicName, subName)).exceptionally(ex -> {
                     log.error("[{}][{}] Failed to close previous dispatcher", topicName, subName, ex);
                     return null;
                 });
@@ -272,9 +270,7 @@ public class PersistentSubscription implements Subscription {
                 this.close().thenRun(() -> {
                     synchronized (this) {
                         if (dispatcher != null) {
-                            dispatcher.close().thenRun(() -> {
-                                log.info("[{}][{}] Successfully closed dispatcher for reader", topicName, subName);
-                            }).exceptionally(ex -> {
+                            dispatcher.close().thenRun(() -> log.info("[{}][{}] Successfully closed dispatcher for reader", topicName, subName)).exceptionally(ex -> {
                                 log.error("[{}][{}] Failed to close dispatcher for reader", topicName, subName, ex);
                                 return null;
                             });
@@ -878,17 +874,13 @@ public class PersistentSubscription implements Subscription {
         CompletableFuture<Void> closeSubscriptionFuture = new CompletableFuture<>();
 
         if (closeIfConsumersConnected) {
-            this.disconnect().thenRun(() -> {
-                closeSubscriptionFuture.complete(null);
-            }).exceptionally(ex -> {
+            this.disconnect().thenRun(() -> closeSubscriptionFuture.complete(null)).exceptionally(ex -> {
                 log.error("[{}][{}] Error disconnecting and closing subscription", topicName, subName, ex);
                 closeSubscriptionFuture.completeExceptionally(ex);
                 return null;
             });
         } else {
-            this.close().thenRun(() -> {
-                closeSubscriptionFuture.complete(null);
-            }).exceptionally(exception -> {
+            this.close().thenRun(() -> closeSubscriptionFuture.complete(null)).exceptionally(exception -> {
                 log.error("[{}][{}] Error closing subscription", topicName, subName, exception);
                 closeSubscriptionFuture.completeExceptionally(exception);
                 return null;

@@ -56,7 +56,7 @@ public class BookKeeperClientFactoryImpl implements BookKeeperClientFactory {
             Optional<Class<? extends EnsemblePlacementPolicy>> ensemblePlacementPolicyClass, Map<String, Object> properties) throws IOException {
         ClientConfiguration bkConf = createBkClientConfiguration(conf);
         if (properties != null) {
-            properties.forEach((key, value) -> bkConf.setProperty(key, value));
+            properties.forEach(bkConf::setProperty);
         }
         if (ensemblePlacementPolicyClass.isPresent()) {
             setEnsemblePlacementPolicy(bkConf, conf, zkClient, ensemblePlacementPolicyClass.get());

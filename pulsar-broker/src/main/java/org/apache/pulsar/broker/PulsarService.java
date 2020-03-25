@@ -344,7 +344,7 @@ public class PulsarService implements AutoCloseable {
      * @return the current function worker service configuration.
      */
     public Optional<WorkerConfig> getWorkerConfig() {
-        return functionWorkerService.map(service -> service.getWorkerConfig());
+        return functionWorkerService.map(WorkerService::getWorkerConfig);
     }
 
     public Map<String, String> getProtocolDataToAdvertise() {
@@ -421,12 +421,9 @@ public class PulsarService implements AutoCloseable {
             attributeMap.put(WebService.ATTRIBUTE_PULSAR_NAME, this);
             Map<String, Object> vipAttributeMap = Maps.newHashMap();
             vipAttributeMap.put(VipStatus.ATTRIBUTE_STATUS_FILE_PATH, this.config.getStatusFilePath());
-            vipAttributeMap.put(VipStatus.ATTRIBUTE_IS_READY_PROBE, new Supplier<Boolean>() {
-                @Override
-                public Boolean get() {
-                    // Ensure the VIP status is only visible when the broker is fully initialized
-                    return state == State.Started;
-                }
+            vipAttributeMap.put(VipStatus.ATTRIBUTE_IS_READY_PROBE, (Supplier<Boolean>) () -> {
+                // Ensure the VIP status is only visible when the broker is fully initialized
+                return state == State.Started;
             });
             this.webService.addRestResources("/", VipStatus.class.getPackage().getName(), false, vipAttributeMap);
             this.webService.addRestResources("/", "org.apache.pulsar.broker.web", false, attributeMap);
@@ -1156,7 +1153,7 @@ public class PulsarService implements AutoCloseable {
                     this.getConfiguration().getZookeeperServers(),
                     this.getConfiguration().getConfigurationStoreServers(),
                     new ClientConfiguration().getZkLedgersRootPath(),
-                    this.getWorkerConfig().map(wc -> wc.getStateStorageServiceUrl()).orElse(null));
+                    this.getWorkerConfig().map(WorkerConfig::getStateStorageServiceUrl).orElse(null));
 
             URI dlogURI;
             try {

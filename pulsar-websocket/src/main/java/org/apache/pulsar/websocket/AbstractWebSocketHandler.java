@@ -57,9 +57,7 @@ public abstract class AbstractWebSocketHandler extends WebSocketAdapter implemen
         this.topic = extractTopicName(request);
 
         this.queryParams = new TreeMap<>();
-        request.getParameterMap().forEach((key, values) -> {
-            queryParams.put(key, values[0]);
-        });
+        request.getParameterMap().forEach((key, values) -> queryParams.put(key, values[0]));
     }
 
     protected boolean checkAuth(ServletUpgradeResponse response) {

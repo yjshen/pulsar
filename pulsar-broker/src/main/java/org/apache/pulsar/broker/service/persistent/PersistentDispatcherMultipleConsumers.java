@@ -25,6 +25,7 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Lists;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -147,7 +148,7 @@ public class PersistentDispatcherMultipleConsumers extends AbstractDispatcherMul
         }
 
         consumerList.add(consumer);
-        consumerList.sort((c1, c2) -> c1.getPriorityLevel() - c2.getPriorityLevel());
+        consumerList.sort(Comparator.comparingInt(Consumer::getPriorityLevel));
         consumerSet.add(consumer);
     }
 
@@ -264,7 +265,7 @@ public class PersistentDispatcherMultipleConsumers extends AbstractDispatcherMul
                                     topicRateLimiter.getDispatchRateOnMsg(), topicRateLimiter.getDispatchRateOnByte(),
                                     MESSAGE_RATE_BACKOFF_MS);
                         }
-                        topic.getBrokerService().executor().schedule(() -> readMoreEntries(), MESSAGE_RATE_BACKOFF_MS,
+                        topic.getBrokerService().executor().schedule(this::readMoreEntries, MESSAGE_RATE_BACKOFF_MS,
                                 TimeUnit.MILLISECONDS);
                         return;
                     } else {
@@ -283,7 +284,7 @@ public class PersistentDispatcherMultipleConsumers extends AbstractDispatcherMul
                                 dispatchRateLimiter.get().getDispatchRateOnMsg(), dispatchRateLimiter.get().getDispatchRateOnByte(),
                                 MESSAGE_RATE_BACKOFF_MS);
                         }
-                        topic.getBrokerService().executor().schedule(() -> readMoreEntries(), MESSAGE_RATE_BACKOFF_MS,
+                        topic.getBrokerService().executor().schedule(this::readMoreEntries, MESSAGE_RATE_BACKOFF_MS,
                             TimeUnit.MILLISECONDS);
                         return;
                     } else {
@@ -374,13 +375,9 @@ public class PersistentDispatcherMultipleConsumers extends AbstractDispatcherMul
             this.delayedDeliveryTracker = Optional.empty();
         }
 
-        if (delayedDeliveryTracker.isPresent()) {
-            delayedDeliveryTracker.get().close();
-        }
+        delayedDeliveryTracker.ifPresent(DelayedDeliveryTracker::close);
 
-        if (dispatchRateLimiter.isPresent()) {
-            dispatchRateLimiter.get().close();
-        }
+        dispatchRateLimiter.ifPresent(DispatchRateLimiter::close);
 
         return disconnectAllConsumers();
     }
@@ -486,9 +483,7 @@ public class PersistentDispatcherMultipleConsumers extends AbstractDispatcherMul
 
                 // remove positions first from replay list first : sendMessages recycles entries
                 if (readType == ReadType.Replay) {
-                    entries.subList(start, start + messagesForC).forEach(entry -> {
-                        messagesToRedeliver.remove(entry.getLedgerId(), entry.getEntryId());
-                    });
+                    entries.subList(start, start + messagesForC).forEach(entry -> messagesToRedeliver.remove(entry.getLedgerId(), entry.getEntryId()));
                 }
 
                 SendMessageInfo sendMessageInfo = SendMessageInfo.getThreadLocal();
@@ -567,10 +562,8 @@ public class PersistentDispatcherMultipleConsumers extends AbstractDispatcherMul
             if (exception instanceof ManagedLedgerException.InvalidReplayPositionException) {
                 PositionImpl markDeletePosition = (PositionImpl) cursor.getMarkDeletedPosition();
 
-                messagesToRedeliver.removeIf((ledgerId, entryId) -> {
-                    return ComparisonChain.start().compare(ledgerId, markDeletePosition.getLedgerId())
-                            .compare(entryId, markDeletePosition.getEntryId()).result() <= 0;
-                });
+                messagesToRedeliver.removeIf((ledgerId, entryId) -> ComparisonChain.start().compare(ledgerId, markDeletePosition.getLedgerId())
+                        .compare(entryId, markDeletePosition.getEntryId()).result() <= 0);
             }
         }
 
@@ -623,9 +616,7 @@ public class PersistentDispatcherMultipleConsumers extends AbstractDispatcherMul
 
     @Override
     public synchronized void redeliverUnacknowledgedMessages(Consumer consumer) {
-        consumer.getPendingAcks().forEach((ledgerId, entryId, batchSize, none) -> {
-            messagesToRedeliver.add(ledgerId, entryId);
-        });
+        consumer.getPendingAcks().forEach((ledgerId, entryId, batchSize, none) -> messagesToRedeliver.add(ledgerId, entryId));
         if (log.isDebugEnabled()) {
             log.debug("[{}-{}] Redelivering unacknowledged messages for consumer {}", name, consumer,
                     messagesToRedeliver);
@@ -677,7 +668,7 @@ public class PersistentDispatcherMultipleConsumers extends AbstractDispatcherMul
             // unblock dispatcher if it acks back enough messages
             if (BLOCKED_DISPATCHER_ON_UNACKMSG_UPDATER.compareAndSet(this, TRUE, FALSE)) {
                 log.info("[{}] Dispatcher is unblocked", name);
-                topic.getBrokerService().executor().execute(() -> readMoreEntries());
+                topic.getBrokerService().executor().execute(this::readMoreEntries);
             }
         }
         // increment broker-level count
@@ -744,7 +735,7 @@ public class PersistentDispatcherMultipleConsumers extends AbstractDispatcherMul
     private synchronized Set<PositionImpl> getMessagesToReplayNow(int maxMessagesToRead) {
         if (!messagesToRedeliver.isEmpty()) {
             return messagesToRedeliver.items(maxMessagesToRead,
-                    (ledgerId, entryId) -> new PositionImpl(ledgerId, entryId));
+                    PositionImpl::new);
         } else if (delayedDeliveryTracker.isPresent() && delayedDeliveryTracker.get().hasMessageAvailable()) {
             delayedDeliveryTracker.get().resetTickTime(topic.delayedDeliveryTickTimeMillis);
             return delayedDeliveryTracker.get().getScheduledMessages(maxMessagesToRead);

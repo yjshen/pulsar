@@ -39,7 +39,7 @@ public interface TransactionMetadataStore {
      *         it returns {@link TxnStatus} of the given transaction.
      */
     default CompletableFuture<TxnStatus> getTxnStatus(TxnID txnid) {
-        return getTxnMeta(txnid).thenApply(txnMeta -> txnMeta.status());
+        return getTxnMeta(txnid).thenApply(TxnMeta::status);
     }
 
     /**

@@ -65,9 +65,7 @@ public class ZookeeperBkClientFactoryImpl implements ZooKeeperClientFactory {
                 log.error("Failed to establish ZooKeeper session: {}", exception.getMessage());
                 future.completeExceptionally(exception);
             }
-        }, throwable -> {
-            future.completeExceptionally(throwable);
-        }));
+        }, future::completeExceptionally));
 
         return future;
     }

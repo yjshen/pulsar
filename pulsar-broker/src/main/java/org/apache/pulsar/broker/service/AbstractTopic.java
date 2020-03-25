@@ -112,7 +112,7 @@ public abstract class AbstractTopic implements Topic {
         try {
             policies = brokerService.pulsar().getConfigurationCache().policiesCache()
                     .get(AdminResource.path(POLICIES, TopicName.get(topic).getNamespace()))
-                    .orElseGet(() -> new Policies());
+                    .orElseGet(Policies::new);
         } catch (Exception e) {
             policies = new Policies();
         }

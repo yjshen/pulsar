@@ -154,7 +154,7 @@ public class EntryCacheManager {
     }
 
     public void clear() {
-        caches.values().forEach(cache -> cache.clear());
+        caches.values().forEach(EntryCache::clear);
     }
 
     protected class EntryCacheDisabled implements EntryCache {

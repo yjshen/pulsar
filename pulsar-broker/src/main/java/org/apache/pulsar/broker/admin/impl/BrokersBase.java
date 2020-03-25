@@ -55,6 +55,7 @@ import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.common.conf.InternalConfigurationData;
 import org.apache.pulsar.common.policies.data.NamespaceOwnershipStatus;
 import org.apache.pulsar.common.util.ObjectMapperFactory;
+import org.apache.pulsar.functions.worker.WorkerConfig;
 import org.apache.pulsar.zookeeper.ZooKeeperDataCache;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
@@ -244,7 +245,7 @@ public class BrokersBase extends AdminResource {
             pulsar().getConfiguration().getZookeeperServers(),
             pulsar().getConfiguration().getConfigurationStoreServers(),
             conf.getZkLedgersRootPath(),
-            pulsar().getWorkerConfig().map(wc -> wc.getStateStorageServiceUrl()).orElse(null));
+            pulsar().getWorkerConfig().map(WorkerConfig::getStateStorageServiceUrl).orElse(null));
     }
 
     @GET
@@ -297,27 +298,21 @@ public class BrokersBase extends AdminResource {
                                 completePromise.completeExceptionally(new TimeoutException("Timed out reading"));
                             }, 10, TimeUnit.SECONDS);
                         // don't leave timeout dangling
-                        completePromise.whenComplete((ignore2, exception2) -> {
-                                timeout.cancel(false);
-                            });
+                        completePromise.whenComplete((ignore2, exception2) -> timeout.cancel(false));
                     }
                 });
 
         completePromise.whenComplete((ignore, exception) -> {
-                producerFuture.thenAccept((producer) -> {
-                        producer.closeAsync().whenComplete((ignore2, exception2) -> {
-                                if (exception2 != null) {
-                                    LOG.warn("Error closing producer for healthcheck", exception2);
-                                }
-                            });
-                    });
-                readerFuture.thenAccept((reader) -> {
-                        reader.closeAsync().whenComplete((ignore2, exception2) -> {
-                                if (exception2 != null) {
-                                    LOG.warn("Error closing reader for healthcheck", exception2);
-                                }
-                            });
-                    });
+                producerFuture.thenAccept((producer) -> producer.closeAsync().whenComplete((ignore2, exception2) -> {
+                        if (exception2 != null) {
+                            LOG.warn("Error closing producer for healthcheck", exception2);
+                        }
+                    }));
+                readerFuture.thenAccept((reader) -> reader.closeAsync().whenComplete((ignore2, exception2) -> {
+                        if (exception2 != null) {
+                            LOG.warn("Error closing reader for healthcheck", exception2);
+                        }
+                    }));
                 if (exception != null) {
                     asyncResponse.resume(new RestException(exception));
                 } else {

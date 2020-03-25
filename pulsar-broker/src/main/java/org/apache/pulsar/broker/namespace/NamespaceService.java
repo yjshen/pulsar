@@ -356,9 +356,7 @@ public class NamespaceService {
                         future.complete(Optional.empty());
                     } else {
                         // Now, no one owns the namespace yet. Hence, we will try to dynamically assign it
-                        pulsar.getExecutor().execute(() -> {
-                            searchForCandidateBroker(bundle, future, authoritative);
-                        });
+                        pulsar.getExecutor().execute(() -> searchForCandidateBroker(bundle, future, authoritative));
                     }
                 } else if (nsData.get().isDisabled()) {
                     future.completeExceptionally(
@@ -603,11 +601,9 @@ public class NamespaceService {
 
     private NamespaceIsolationPolicies getLocalNamespaceIsolationPolicies() throws Exception {
         String localCluster = pulsar.getConfiguration().getClusterName();
+        // the namespace isolation policies are empty/undefined = an empty object
         return pulsar.getConfigurationCache().namespaceIsolationPoliciesCache()
-                .get(AdminResource.path("clusters", localCluster, NAMESPACE_ISOLATION_POLICIES)).orElseGet(() -> {
-                    // the namespace isolation policies are empty/undefined = an empty object
-                    return new NamespaceIsolationPolicies();
-                });
+                .get(AdminResource.path("clusters", localCluster, NAMESPACE_ISOLATION_POLICIES)).orElseGet(NamespaceIsolationPolicies::new);
     }
 
     public boolean isNamespaceBundleDisabled(NamespaceBundle bundle) throws Exception {
@@ -855,7 +851,7 @@ public class NamespaceService {
     }
 
     private CompletableFuture<Boolean> isTopicOwnedAsync(TopicName topic) {
-        return getBundleAsync(topic).thenApply(bundle -> ownershipCache.isNamespaceBundleOwned(bundle));
+        return getBundleAsync(topic).thenApply(ownershipCache::isNamespaceBundleOwned);
     }
 
     private boolean isTopicOwned(TopicName topicName) throws Exception {
@@ -939,9 +935,7 @@ public class NamespaceService {
     public CompletableFuture<List<String>> getFullListOfTopics(NamespaceName namespaceName) {
         return getListOfPersistentTopics(namespaceName)
                 .thenCombine(getListOfNonPersistentTopics(namespaceName),
-                        (persistentTopics, nonPersistentTopics) -> {
-                            return ListUtils.union(persistentTopics, nonPersistentTopics);
-                        });
+                        ListUtils::union);
     }
 
     public CompletableFuture<List<String>> getOwnedTopicListForNamespaceBundle(NamespaceBundle bundle) {
@@ -970,7 +964,7 @@ public class NamespaceService {
         } else {
             return pulsar.getBrokerService()
                     .getTopicIfExists(topic.toString())
-                    .thenApply(optTopic -> optTopic.isPresent());
+                    .thenApply(Optional::isPresent);
         }
     }
 
@@ -1072,14 +1066,12 @@ public class NamespaceService {
                             if (pulsar.getBrokerService().getMultiLayerTopicMap()
                                     .containsKey(namespaceName.toString())) {
                                 pulsar.getBrokerService().getMultiLayerTopicMap().get(namespaceName.toString()).values()
-                                        .forEach(bundle -> {
-                                            bundle.forEach((topicName, topic) -> {
-                                                if (topic instanceof NonPersistentTopic
-                                                        && ((NonPersistentTopic) topic).isActive()) {
-                                                    topics.add(topicName);
-                                                }
-                                            });
-                                        });
+                                        .forEach(bundle -> bundle.forEach((topicName, topic) -> {
+                                            if (topic instanceof NonPersistentTopic
+                                                    && ((NonPersistentTopic) topic).isActive()) {
+                                                topics.add(topicName);
+                                            }
+                                        }));
                             }
                         }
 

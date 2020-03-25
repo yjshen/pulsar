@@ -97,29 +97,26 @@ public class TimeTriggerPolicy<T> implements TriggerPolicy<T, Void> {
     }
 
     private Runnable newTriggerTask() {
-        return new Runnable() {
-            @Override
-            public void run() {
-                // initialize the thread context
-                ThreadContext.put("function", WindowUtils.getFullyQualifiedName(
-                        context.getTenant(), context.getNamespace(), context.getFunctionName()));
-                // do not process current timestamp since tuples might arrive while the trigger is executing
-                long now = System.currentTimeMillis() - 1;
-                try {
-                    /*
-                     * set the current timestamp as the reference time for the eviction policy
-                     * to evict the events
-                     */
-                    evictionPolicy.setContext(new DefaultEvictionContext(now, null, null, duration));
-                    handler.onTrigger();
-                } catch (Throwable th) {
-                    log.error("handler.onTrigger failed ", th);
-                    /*
-                     * propagate it so that task gets canceled and the exception
-                     * can be retrieved from executorFuture.get()
-                     */
-                    throw th;
-                }
+        return () -> {
+            // initialize the thread context
+            ThreadContext.put("function", WindowUtils.getFullyQualifiedName(
+                    context.getTenant(), context.getNamespace(), context.getFunctionName()));
+            // do not process current timestamp since tuples might arrive while the trigger is executing
+            long now = System.currentTimeMillis() - 1;
+            try {
+                /*
+                 * set the current timestamp as the reference time for the eviction policy
+                 * to evict the events
+                 */
+                evictionPolicy.setContext(new DefaultEvictionContext(now, null, null, duration));
+                handler.onTrigger();
+            } catch (Throwable th) {
+                log.error("handler.onTrigger failed ", th);
+                /*
+                 * propagate it so that task gets canceled and the exception
+                 * can be retrieved from executorFuture.get()
+                 */
+                throw th;
             }
         };
     }

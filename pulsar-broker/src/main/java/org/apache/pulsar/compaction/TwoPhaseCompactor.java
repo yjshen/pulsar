@@ -167,9 +167,7 @@ public class TwoPhaseCompactor extends Compactor {
         Future<?> timeout = scheduler.schedule(() -> {
             future.completeExceptionally(new TimeoutException("Timeout"));
         }, 10, TimeUnit.SECONDS);
-        future.whenComplete((res, exception) -> {
-            timeout.cancel(true);
-        });
+        future.whenComplete((res, exception) -> timeout.cancel(true));
     }
 
     private CompletableFuture<Long> phaseTwo(RawReader reader, MessageId from, MessageId to, MessageId lastReadId,

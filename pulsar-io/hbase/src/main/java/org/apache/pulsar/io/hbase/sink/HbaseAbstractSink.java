@@ -88,7 +88,7 @@ public abstract class HbaseAbstractSink<T> implements Sink<T> {
         batchSize = hbaseSinkConfig.getBatchSize();
         incomingList = Lists.newArrayList();
         flushExecutor = Executors.newScheduledThreadPool(1);
-        flushExecutor.scheduleAtFixedRate(() -> flush(), batchTimeMs, batchTimeMs, TimeUnit.MILLISECONDS);
+        flushExecutor.scheduleAtFixedRate(this::flush, batchTimeMs, batchTimeMs, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -121,7 +121,7 @@ public abstract class HbaseAbstractSink<T> implements Sink<T> {
         }
 
         if (number == batchSize) {
-            flushExecutor.submit(() -> flush());
+            flushExecutor.submit(this::flush);
         }
     }
 
@@ -153,11 +153,11 @@ public abstract class HbaseAbstractSink<T> implements Sink<T> {
                 table.batch(puts, new Object[puts.size()]);
             }
 
-            toFlushList.forEach(tRecord -> tRecord.ack());
+            toFlushList.forEach(Record::ack);
             puts.clear();
             toFlushList.clear();
         } catch (Exception e) {
-            toFlushList.forEach(tRecord -> tRecord.fail());
+            toFlushList.forEach(Record::fail);
             log.error("Hbase table put data exception ", e);
         }
     }

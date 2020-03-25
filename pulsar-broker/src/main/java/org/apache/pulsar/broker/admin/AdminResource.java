@@ -245,9 +245,7 @@ public abstract class AdminResource extends PulsarWebResource {
                         namespaces.add(namespace);
                     }
                 } else {
-                    children.forEach(ns -> {
-                        namespaces.add(NamespaceName.get(property, clusterOrNamespace, ns).toString());
-                    });
+                    children.forEach(ns -> namespaces.add(NamespaceName.get(property, clusterOrNamespace, ns).toString()));
                 }
             } catch (KeeperException.NoNodeException e) {
                 // A cluster was deleted between the 2 getChildren() calls, ignoring

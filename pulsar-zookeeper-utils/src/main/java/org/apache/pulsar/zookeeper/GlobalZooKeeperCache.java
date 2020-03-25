@@ -145,9 +145,7 @@ public class GlobalZooKeeperCache extends ZooKeeperCache implements Closeable {
             LOG.warn("Failed to re-create global ZK session: {}", ex.getMessage());
 
             // Schedule another attempt for later
-            scheduledExecutor.schedule(() -> {
-                asyncRestartZooKeeperSession();
-            }, 10, TimeUnit.SECONDS);
+            scheduledExecutor.schedule(this::asyncRestartZooKeeperSession, 10, TimeUnit.SECONDS);
             return null;
         });
     }

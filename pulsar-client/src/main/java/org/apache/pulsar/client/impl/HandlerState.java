@@ -40,7 +40,7 @@ abstract class HandlerState {
                     // has been terminated
         Failed, // Handler is failed
         RegisteringSchema // Handler is registering schema
-    };
+    }
 
     public HandlerState(PulsarClientImpl client, String topic) {
         this.client = client;

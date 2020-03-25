@@ -635,10 +635,8 @@ public class MockZooKeeper extends ZooKeeper {
             mutex.unlock();
         }
 
-        executor.execute(() -> {
-            toNotify.forEach(watcher -> watcher
-                    .process(new WatchedEvent(EventType.NodeDataChanged, KeeperState.SyncConnected, path)));
-        });
+        executor.execute(() -> toNotify.forEach(watcher -> watcher
+                .process(new WatchedEvent(EventType.NodeDataChanged, KeeperState.SyncConnected, path))));
 
         Stat stat = new Stat();
         stat.setVersion(newVersion);

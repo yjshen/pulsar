@@ -153,9 +153,7 @@ public class HttpLookupService implements LookupService {
                     schemaName,
                     ByteBuffer.wrap(version).getLong());
         }
-        httpClient.get(path, GetSchemaResponse.class).thenAccept(response -> {
-            future.complete(Optional.of(SchemaInfoUtil.newSchemaInfo(schemaName, response)));
-        }).exceptionally(ex -> {
+        httpClient.get(path, GetSchemaResponse.class).thenAccept(response -> future.complete(Optional.of(SchemaInfoUtil.newSchemaInfo(schemaName, response)))).exceptionally(ex -> {
             if (ex.getCause() instanceof NotFoundException) {
                 future.complete(Optional.empty());
             } else {

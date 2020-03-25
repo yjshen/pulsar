@@ -30,6 +30,6 @@ import java.util.function.Function;
 public class AddWindowFunction implements Function <Collection<Integer>, Integer> {
     @Override
     public Integer apply(Collection<Integer> integers) {
-        return integers.stream().reduce(0, (x, y) -> x + y);
+        return integers.stream().reduce(0, Integer::sum);
     }
 }

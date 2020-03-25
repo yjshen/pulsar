@@ -80,7 +80,7 @@ public abstract class InfluxDBAbstractSink<T> implements Sink<T> {
         batchSize = influxDBSinkConfig.getBatchSize();
         incomingList = Lists.newArrayList();
         flushExecutor = Executors.newScheduledThreadPool(1);
-        flushExecutor.scheduleAtFixedRate(() -> flush(), batchTimeMs, batchTimeMs, TimeUnit.MILLISECONDS);
+        flushExecutor.scheduleAtFixedRate(this::flush, batchTimeMs, batchTimeMs, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -94,7 +94,7 @@ public abstract class InfluxDBAbstractSink<T> implements Sink<T> {
         }
 
         if (currentSize == batchSize) {
-            flushExecutor.submit(() -> flush());
+            flushExecutor.submit(this::flush);
         }
     }
 
@@ -131,11 +131,11 @@ public abstract class InfluxDBAbstractSink<T> implements Sink<T> {
             if (CollectionUtils.isNotEmpty(batch.getPoints())) {
                 influxDB.write(batch);
             }
-            toFlushList.forEach(tRecord -> tRecord.ack());
+            toFlushList.forEach(Record::ack);
             batch.getPoints().clear();
             toFlushList.clear();
         } catch (Exception e) {
-            toFlushList.forEach(tRecord -> tRecord.fail());
+            toFlushList.forEach(Record::fail);
             log.error("InfluxDB write batch data exception ", e);
         }
     }

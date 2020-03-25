@@ -79,15 +79,11 @@ public class WebSocketProxyStatsBase extends WebSocketWebResource {
         }
 
         if (service().getConsumers().containsKey(topicNameStr)) {
-            service().getConsumers().get(topicNameStr).forEach(handler -> {
-                topicStat.consumerStats.add(new ConsumerStats(handler));
-            });
+            service().getConsumers().get(topicNameStr).forEach(handler -> topicStat.consumerStats.add(new ConsumerStats(handler)));
         }
 
         if (service().getReaders().containsKey(topicNameStr)) {
-            service().getReaders().get(topicNameStr).forEach(handler -> {
-                topicStat.consumerStats.add(new ConsumerStats(handler));
-            });
+            service().getReaders().get(topicNameStr).forEach(handler -> topicStat.consumerStats.add(new ConsumerStats(handler)));
         }
         return topicStat;
     }

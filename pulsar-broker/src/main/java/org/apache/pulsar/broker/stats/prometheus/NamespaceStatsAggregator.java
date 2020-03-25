@@ -59,18 +59,16 @@ public class NamespaceStatsAggregator {
         pulsar.getBrokerService().getMultiLayerTopicMap().forEach((namespace, bundlesMap) -> {
             namespaceStats.reset();
 
-            bundlesMap.forEach((bundle, topicsMap) -> {
-                topicsMap.forEach((name, topic) -> {
-                    getTopicStats(topic, topicStats, includeConsumerMetrics, pulsar.getConfiguration().isExposePreciseBacklogInPrometheus());
+            bundlesMap.forEach((bundle, topicsMap) -> topicsMap.forEach((name, topic) -> {
+                getTopicStats(topic, topicStats, includeConsumerMetrics, pulsar.getConfiguration().isExposePreciseBacklogInPrometheus());
 
-                    if (includeTopicMetrics) {
-                        topicsCount.add(1);
-                        TopicStats.printTopicStats(stream, cluster, namespace, name, topicStats);
-                    } else {
-                        namespaceStats.updateStats(topicStats);
-                    }
-                });
-            });
+                if (includeTopicMetrics) {
+                    topicsCount.add(1);
+                    TopicStats.printTopicStats(stream, cluster, namespace, name, topicStats);
+                } else {
+                    namespaceStats.updateStats(topicStats);
+                }
+            }));
 
             if (!includeTopicMetrics) {
                 // Only include namespace level stats if we don't have the per-topic, otherwise we're going to report

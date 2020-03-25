@@ -117,15 +117,13 @@ public class ConcurrentSortedLongPairSet implements LongPairSet {
     public void forEach(LongPairConsumer processor) {
         for (Long item1 : longPairSets.navigableKeySet()) {
             ConcurrentLongPairSet messagesToReplay = longPairSets.get(item1);
-            messagesToReplay.forEach((i1, i2) -> {
-                processor.accept(i1, i2);
-            });
+            messagesToReplay.forEach(processor::accept);
         }
     }
 
     @Override
     public Set<LongPair> items(int numberOfItems) {
-        return items(numberOfItems, (item1, item2) -> new LongPair(item1, item2));
+        return items(numberOfItems, LongPair::new);
     }
 
     @Override
@@ -152,18 +150,16 @@ public class ConcurrentSortedLongPairSet implements LongPairSet {
         StringBuilder sb = new StringBuilder();
         sb.append('{');
         final AtomicBoolean first = new AtomicBoolean(true);
-        longPairSets.forEach((key, longPairSet) -> {
-            longPairSet.forEach((item1, item2) -> {
-                if (!first.getAndSet(false)) {
-                    sb.append(", ");
-                }
-                sb.append('[');
-                sb.append(item1);
-                sb.append(':');
-                sb.append(item2);
-                sb.append(']');
-            });
-        });
+        longPairSets.forEach((key, longPairSet) -> longPairSet.forEach((item1, item2) -> {
+            if (!first.getAndSet(false)) {
+                sb.append(", ");
+            }
+            sb.append('[');
+            sb.append(item1);
+            sb.append(':');
+            sb.append(item2);
+            sb.append(']');
+        }));
         sb.append('}');
         return sb.toString();
     }
@@ -187,9 +183,7 @@ public class ConcurrentSortedLongPairSet implements LongPairSet {
     @Override
     public long size() {
         AtomicLong size = new AtomicLong(0);
-        longPairSets.forEach((item1, longPairSet) -> {
-            size.getAndAdd(longPairSet.size());
-        });
+        longPairSets.forEach((item1, longPairSet) -> size.getAndAdd(longPairSet.size()));
         return size.get();
     }
 

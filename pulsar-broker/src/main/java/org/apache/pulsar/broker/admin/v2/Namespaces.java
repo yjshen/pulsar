@@ -96,9 +96,7 @@ public class Namespaces extends NamespacesBase {
         getNamespacePolicies(namespaceName);
 
         pulsar().getNamespaceService().getListOfTopics(namespaceName, mode)
-                .thenAccept(topics -> {
-                    asyncResponse.resume(topics);
-                })
+                .thenAccept(asyncResponse::resume)
                 .exceptionally(ex -> {
                     log.error("Failed to get topics list for namespace {}", namespaceName, ex);
                     asyncResponse.resume(ex);

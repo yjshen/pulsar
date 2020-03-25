@@ -182,9 +182,7 @@ public class LoadReport implements LoadManagerReport {
     public double getMsgRateIn() {
         msgRateIn = 0.0;
         if (this.bundleStats != null) {
-            this.bundleStats.forEach((bundle, stats) -> {
-                msgRateIn += stats.msgRateIn;
-            });
+            this.bundleStats.forEach((bundle, stats) -> msgRateIn += stats.msgRateIn);
         }
         return msgRateIn;
     }
@@ -192,9 +190,7 @@ public class LoadReport implements LoadManagerReport {
     public double getMsgRateOut() {
         msgRateOut = 0.0;
         if (this.bundleStats != null) {
-            this.bundleStats.forEach((bundle, stats) -> {
-                msgRateOut += stats.msgRateOut;
-            });
+            this.bundleStats.forEach((bundle, stats) -> msgRateOut += stats.msgRateOut);
         }
         return msgRateOut;
     }
@@ -207,9 +203,7 @@ public class LoadReport implements LoadManagerReport {
     public int getNumTopics() {
         numTopics = 0;
         if (this.bundleStats != null) {
-            this.bundleStats.forEach((bundle, stats) -> {
-                numTopics += stats.topics;
-            });
+            this.bundleStats.forEach((bundle, stats) -> numTopics += stats.topics);
         }
         return numTopics;
     }

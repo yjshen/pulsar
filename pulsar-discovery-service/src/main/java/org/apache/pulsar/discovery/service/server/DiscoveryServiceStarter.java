@@ -53,9 +53,7 @@ public class DiscoveryServiceStarter {
         install();
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss,SSS");
-        Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> {
-            System.out.println(String.format("%s [%s] error Uncaught exception in thread %s: %s", dateFormat.format(new Date()), thread.getContextClassLoader(), thread.getName(), exception.getMessage()));
-        });
+        Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> System.out.println(String.format("%s [%s] error Uncaught exception in thread %s: %s", dateFormat.format(new Date()), thread.getContextClassLoader(), thread.getName(), exception.getMessage())));
 
         // load config file
         final ServiceConfig config = PulsarConfigurationLoader.create(configFile, ServiceConfig.class);
@@ -66,17 +64,14 @@ public class DiscoveryServiceStarter {
         // create a web-service
         final ServerManager server = new ServerManager(config);
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                try {
-                    discoveryService.close();
-                    server.stop();
-                } catch (Exception e) {
-                    log.warn("server couldn't stop gracefully {}", e.getMessage(), e);
-                }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                discoveryService.close();
+                server.stop();
+            } catch (Exception e) {
+                log.warn("server couldn't stop gracefully {}", e.getMessage(), e);
             }
-        });
+        }));
 
         discoveryService.start();
         startWebService(server, config);

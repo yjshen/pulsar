@@ -72,7 +72,7 @@ public class PollingZooKeeperConfigurationProvider extends
             try {
                 agentNodeCache = new NodeCache(client, basePath + "/" + getAgentName());
                 agentNodeCache.start();
-                agentNodeCache.getListenable().addListener(() -> refreshConfiguration());
+                agentNodeCache.getListenable().addListener(this::refreshConfiguration);
             } catch (Exception e) {
                 client.close();
                 throw e;

@@ -72,17 +72,11 @@ public class FlinkPulsarBatchCsvSinkExample {
         DataSet<Tuple4<Integer, String, Integer, Integer>> nasaMissionDS = env.fromCollection(nasaMissions);
         // map nasa mission names to upper-case
         nasaMissionDS.map(
-            new MapFunction<Tuple4<Integer, String, Integer, Integer>, Tuple4<Integer, String, Integer, Integer>>() {
-                           @Override
-                           public Tuple4<Integer, String, Integer, Integer> map(
-                                   Tuple4<Integer, String, Integer, Integer> nasaMission) throws Exception {
-                               return new Tuple4(
-                                       nasaMission.f0,
-                                       nasaMission.f1.toUpperCase(),
-                                       nasaMission.f2,
-                                       nasaMission.f3);
-                           }
-                       }
+                (MapFunction<Tuple4<Integer, String, Integer, Integer>, Tuple4<Integer, String, Integer, Integer>>) nasaMission -> new Tuple4(
+                        nasaMission.f0,
+                        nasaMission.f1.toUpperCase(),
+                        nasaMission.f2,
+                        nasaMission.f3)
         )
         // filter missions which started after 1970
         .filter(nasaMission -> nasaMission.f2 > 1970)

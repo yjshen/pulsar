@@ -393,9 +393,7 @@ public class MessageCrypto {
             if (keyInfo != null) {
                 if (keyInfo.getMetadata() != null && !keyInfo.getMetadata().isEmpty()) {
                     List<KeyValue> kvList = new ArrayList<KeyValue>();
-                    keyInfo.getMetadata().forEach((key, value) -> {
-                        kvList.add(KeyValue.newBuilder().setKey(key).setValue(value).build());
-                    });
+                    keyInfo.getMetadata().forEach((key, value) -> kvList.add(KeyValue.newBuilder().setKey(key).setValue(value).build()));
                     msgMetadata.addEncryptionKeys(EncryptionKeys.newBuilder().setKey(keyName)
                             .setValue(ByteString.copyFrom(keyInfo.getKey())).addAllMetadata(kvList).build());
                 } else {
@@ -448,9 +446,7 @@ public class MessageCrypto {
             CryptoKeyReader keyReader) {
 
         Map<String, String> keyMeta = new HashMap<String, String>();
-        encKeyMeta.forEach(kv -> {
-            keyMeta.put(kv.getKey(), kv.getValue());
-        });
+        encKeyMeta.forEach(kv -> keyMeta.put(kv.getKey(), kv.getValue()));
 
         // Read the private key info using callback
         EncryptionKeyInfo keyInfo = keyReader.getPrivateKey(keyName, keyMeta);

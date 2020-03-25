@@ -64,12 +64,10 @@ public class FunctionConfigUtils {
         // Setup source
         Function.SourceSpec.Builder sourceSpecBuilder = Function.SourceSpec.newBuilder();
         if (functionConfig.getInputs() != null) {
-            functionConfig.getInputs().forEach((topicName -> {
-                sourceSpecBuilder.putInputSpecs(topicName,
-                        Function.ConsumerSpec.newBuilder()
-                                .setIsRegexPattern(false)
-                                .build());
-            }));
+            functionConfig.getInputs().forEach((topicName -> sourceSpecBuilder.putInputSpecs(topicName,
+                    Function.ConsumerSpec.newBuilder()
+                            .setIsRegexPattern(false)
+                            .build())));
         }
         if (functionConfig.getTopicsPattern() != null && !functionConfig.getTopicsPattern().isEmpty()) {
             sourceSpecBuilder.putInputSpecs(functionConfig.getTopicsPattern(),
@@ -78,22 +76,18 @@ public class FunctionConfigUtils {
                             .build());
         }
         if (functionConfig.getCustomSerdeInputs() != null) {
-            functionConfig.getCustomSerdeInputs().forEach((topicName, serdeClassName) -> {
-                sourceSpecBuilder.putInputSpecs(topicName,
-                        Function.ConsumerSpec.newBuilder()
-                                .setSerdeClassName(serdeClassName)
-                                .setIsRegexPattern(false)
-                                .build());
-            });
+            functionConfig.getCustomSerdeInputs().forEach((topicName, serdeClassName) -> sourceSpecBuilder.putInputSpecs(topicName,
+                    Function.ConsumerSpec.newBuilder()
+                            .setSerdeClassName(serdeClassName)
+                            .setIsRegexPattern(false)
+                            .build()));
         }
         if (functionConfig.getCustomSchemaInputs() != null) {
-            functionConfig.getCustomSchemaInputs().forEach((topicName, schemaType) -> {
-                sourceSpecBuilder.putInputSpecs(topicName,
-                        Function.ConsumerSpec.newBuilder()
-                                .setSchemaType(schemaType)
-                                .setIsRegexPattern(false)
-                                .build());
-            });
+            functionConfig.getCustomSchemaInputs().forEach((topicName, schemaType) -> sourceSpecBuilder.putInputSpecs(topicName,
+                    Function.ConsumerSpec.newBuilder()
+                            .setSchemaType(schemaType)
+                            .setIsRegexPattern(false)
+                            .build()));
         }
         if (functionConfig.getInputSpecs() != null) {
             functionConfig.getInputSpecs().forEach((topicName, consumerConf) -> {
@@ -408,17 +402,13 @@ public class FunctionConfigUtils {
         // Check if the Input serialization/deserialization class exists in jar or already loaded and that it
         // implements SerDe class
         if (functionConfig.getCustomSerdeInputs() != null) {
-            functionConfig.getCustomSerdeInputs().forEach((topicName, inputSerializer) -> {
-                ValidatorUtils.validateSerde(inputSerializer, typeArgs[0], clsLoader, true);
-            });
+            functionConfig.getCustomSerdeInputs().forEach((topicName, inputSerializer) -> ValidatorUtils.validateSerde(inputSerializer, typeArgs[0], clsLoader, true));
         }
 
         // Check if the Input serialization/deserialization class exists in jar or already loaded and that it
         // implements SerDe class
         if (functionConfig.getCustomSchemaInputs() != null) {
-            functionConfig.getCustomSchemaInputs().forEach((topicName, schemaType) -> {
-                ValidatorUtils.validateSchema(schemaType, typeArgs[0], clsLoader, true);
-            });
+            functionConfig.getCustomSchemaInputs().forEach((topicName, schemaType) -> ValidatorUtils.validateSchema(schemaType, typeArgs[0], clsLoader, true));
         }
 
         // Check if the Input serialization/deserialization class exists in jar or already loaded and that it
@@ -691,10 +681,8 @@ public class FunctionConfigUtils {
         }
 
         if (newConfig.getInputs() != null) {
-            newConfig.getInputs().forEach((topicName -> {
-                newConfig.getInputSpecs().put(topicName,
-                        ConsumerConfig.builder().isRegexPattern(false).build());
-            }));
+            newConfig.getInputs().forEach((topicName -> newConfig.getInputSpecs().put(topicName,
+                    ConsumerConfig.builder().isRegexPattern(false).build())));
         }
         if (newConfig.getTopicsPattern() != null && !newConfig.getTopicsPattern().isEmpty()) {
             newConfig.getInputSpecs().put(newConfig.getTopicsPattern(),
@@ -703,22 +691,18 @@ public class FunctionConfigUtils {
                             .build());
         }
         if (newConfig.getCustomSerdeInputs() != null) {
-            newConfig.getCustomSerdeInputs().forEach((topicName, serdeClassName) -> {
-                newConfig.getInputSpecs().put(topicName,
-                        ConsumerConfig.builder()
-                                .serdeClassName(serdeClassName)
-                                .isRegexPattern(false)
-                                .build());
-            });
+            newConfig.getCustomSerdeInputs().forEach((topicName, serdeClassName) -> newConfig.getInputSpecs().put(topicName,
+                    ConsumerConfig.builder()
+                            .serdeClassName(serdeClassName)
+                            .isRegexPattern(false)
+                            .build()));
         }
         if (newConfig.getCustomSchemaInputs() != null) {
-            newConfig.getCustomSchemaInputs().forEach((topicName, schemaClassname) -> {
-                newConfig.getInputSpecs().put(topicName,
-                        ConsumerConfig.builder()
-                                .schemaType(schemaClassname)
-                                .isRegexPattern(false)
-                                .build());
-            });
+            newConfig.getCustomSchemaInputs().forEach((topicName, schemaClassname) -> newConfig.getInputSpecs().put(topicName,
+                    ConsumerConfig.builder()
+                            .schemaType(schemaClassname)
+                            .isRegexPattern(false)
+                            .build()));
         }
         if (!newConfig.getInputSpecs().isEmpty()) {
             newConfig.getInputSpecs().forEach((topicName, consumerConfig) -> {

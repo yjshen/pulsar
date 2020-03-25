@@ -88,24 +88,22 @@ public class CompactedTopicImpl implements CompactedTopic {
                 cursor.asyncReadEntriesOrWait(numberOfEntriesToRead, callback, ctx);
             } else {
                 compactedTopicContext.thenCompose(
-                        (context) -> {
-                            return findStartPoint(cursorPosition, context.ledger.getLastAddConfirmed(), context.cache)
-                                .thenCompose((startPoint) -> {
-                                        if (startPoint == NEWER_THAN_COMPACTED) {
-                                            cursor.asyncReadEntriesOrWait(numberOfEntriesToRead, callback, ctx);
-                                            return CompletableFuture.completedFuture(null);
-                                        } else {
-                                            long endPoint = Math.min(context.ledger.getLastAddConfirmed(),
-                                                                     startPoint + numberOfEntriesToRead);
-                                            return readEntries(context.ledger, startPoint, endPoint)
-                                                .thenAccept((entries) -> {
-                                                        Entry lastEntry = entries.get(entries.size() - 1);
-                                                        cursor.seek(lastEntry.getPosition().getNext());
-                                                        callback.readEntriesComplete(entries, ctx);
-                                                    });
-                                        }
-                                    });
-                                })
+                        (context) -> findStartPoint(cursorPosition, context.ledger.getLastAddConfirmed(), context.cache)
+                            .thenCompose((startPoint) -> {
+                                    if (startPoint == NEWER_THAN_COMPACTED) {
+                                        cursor.asyncReadEntriesOrWait(numberOfEntriesToRead, callback, ctx);
+                                        return CompletableFuture.completedFuture(null);
+                                    } else {
+                                        long endPoint = Math.min(context.ledger.getLastAddConfirmed(),
+                                                                 startPoint + numberOfEntriesToRead);
+                                        return readEntries(context.ledger, startPoint, endPoint)
+                                            .thenAccept((entries) -> {
+                                                    Entry lastEntry = entries.get(entries.size() - 1);
+                                                    cursor.seek(lastEntry.getPosition().getNext());
+                                                    callback.readEntriesComplete(entries, ctx);
+                                                });
+                                    }
+                                }))
                     .exceptionally((exception) -> {
                             callback.readEntriesFailed(new ManagedLedgerException(exception), ctx);
                             return null;

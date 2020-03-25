@@ -109,7 +109,7 @@ public class ProtocolHandlers implements AutoCloseable {
     public Map<String, String> getProtocolDataToAdvertise() {
         return handlers.entrySet().stream()
             .collect(Collectors.toMap(
-                e -> e.getKey(),
+                    Map.Entry::getKey,
                 e -> e.getValue().getProtocolDataToAdvertise()
             ));
     }

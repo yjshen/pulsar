@@ -251,9 +251,7 @@ public class MultiTopicsConsumerImpl<T> extends ConsumerBase<T> {
                 } else {
                     // Schedule next receiveAsync() if the incoming queue is not full. Use a different thread to avoid
                     // recursion and stack overflow
-                    client.eventLoopGroup().execute(() -> {
-                        receiveMessageFromConsumer(consumer);
-                    });
+                    client.eventLoopGroup().execute(() -> receiveMessageFromConsumer(consumer));
                 }
             } finally {
                 lock.writeLock().unlock();
@@ -329,9 +327,7 @@ public class MultiTopicsConsumerImpl<T> extends ConsumerBase<T> {
                     }
 
                     // if messages are readily available on consumer we will attempt to writeLock on the same thread
-                    client.eventLoopGroup().execute(() -> {
-                        receiveMessageFromConsumer(consumer);
-                    });
+                    client.eventLoopGroup().execute(() -> receiveMessageFromConsumer(consumer));
                 }
             }
         } finally {
@@ -490,7 +486,7 @@ public class MultiTopicsConsumerImpl<T> extends ConsumerBase<T> {
 
         CompletableFuture<Void> unsubscribeFuture = new CompletableFuture<>();
         List<CompletableFuture<Void>> futureList = consumers.values().stream()
-            .map(c -> c.unsubscribeAsync()).collect(Collectors.toList());
+            .map(ConsumerImpl::unsubscribeAsync).collect(Collectors.toList());
 
         FutureUtil.waitForAll(futureList)
             .whenComplete((r, ex) -> {
@@ -526,7 +522,7 @@ public class MultiTopicsConsumerImpl<T> extends ConsumerBase<T> {
 
         CompletableFuture<Void> closeFuture = new CompletableFuture<>();
         List<CompletableFuture<Void>> futureList = consumers.values().stream()
-            .map(c -> c.closeAsync()).collect(Collectors.toList());
+            .map(ConsumerImpl::closeAsync).collect(Collectors.toList());
 
         FutureUtil.waitForAll(futureList)
             .whenComplete((r, ex) -> {
@@ -570,7 +566,7 @@ public class MultiTopicsConsumerImpl<T> extends ConsumerBase<T> {
 
     @Override
     public boolean isConnected() {
-        return consumers.values().stream().allMatch(consumer -> consumer.isConnected());
+        return consumers.values().stream().allMatch(ConsumerImpl::isConnected);
     }
 
     @Override
@@ -590,7 +586,7 @@ public class MultiTopicsConsumerImpl<T> extends ConsumerBase<T> {
     public void redeliverUnacknowledgedMessages() {
         lock.writeLock().lock();
         try {
-            consumers.values().stream().forEach(consumer -> consumer.redeliverUnacknowledgedMessages());
+            consumers.values().stream().forEach(ConsumerImpl::redeliverUnacknowledgedMessages);
             incomingMessages.clear();
             INCOMING_MESSAGES_SIZE_UPDATER.set(this, 0);
             unAckedMessageTracker.clear();
@@ -619,7 +615,7 @@ public class MultiTopicsConsumerImpl<T> extends ConsumerBase<T> {
             .forEach((topicName, messageIds1) ->
                 consumers.get(topicName)
                     .redeliverUnacknowledgedMessages(messageIds1.stream()
-                        .map(mid -> mid.getInnerMessageId()).collect(Collectors.toSet())));
+                        .map(TopicMessageIdImpl::getInnerMessageId).collect(Collectors.toSet())));
         resumeReceivingFromPausedConsumersIfNeeded();
     }
 
@@ -776,7 +772,7 @@ public class MultiTopicsConsumerImpl<T> extends ConsumerBase<T> {
                 subscribeFuture.completeExceptionally(
                     PulsarClientException.wrap(((Throwable) e).getCause(), String.format("Failed to subscribe %s with %d partitions", topicName, numPartitions)));
                 return null;
-            });;
+            });
         return consumer;
     }
 
@@ -907,21 +903,19 @@ public class MultiTopicsConsumerImpl<T> extends ConsumerBase<T> {
                 } else {
                     return false;
                 }
-            }).collect(Collectors.toList()).forEach(consumer2 -> {
-                consumer2.closeAsync().whenComplete((r, ex) -> {
-                    consumer2.subscribeFuture().completeExceptionally(error);
-                    allTopicPartitionsNumber.decrementAndGet();
-                    consumers.remove(consumer2.getTopic());
-                    if (toCloseNum.decrementAndGet() == 0) {
-                        log.warn("[{}] Failed to subscribe for topic [{}] in topics consumer, subscribe error: {}",
-                            topic, topicName, error.getMessage());
-                        topics.remove(topicName);
-                        checkState(allTopicPartitionsNumber.get() == consumers.values().size());
-                        subscribeFuture.completeExceptionally(error);
-                    }
-                    return;
-                });
-            });
+            }).collect(Collectors.toList()).forEach(consumer2 -> consumer2.closeAsync().whenComplete((r, ex) -> {
+                consumer2.subscribeFuture().completeExceptionally(error);
+                allTopicPartitionsNumber.decrementAndGet();
+                consumers.remove(consumer2.getTopic());
+                if (toCloseNum.decrementAndGet() == 0) {
+                    log.warn("[{}] Failed to subscribe for topic [{}] in topics consumer, subscribe error: {}",
+                        topic, topicName, error.getMessage());
+                    topics.remove(topicName);
+                    checkState(allTopicPartitionsNumber.get() == consumers.values().size());
+                    subscribeFuture.completeExceptionally(error);
+                }
+                return;
+            }));
         });
     }
 
@@ -1133,7 +1127,7 @@ public class MultiTopicsConsumerImpl<T> extends ConsumerBase<T> {
                 FutureUtil.waitForAll(futureList)
                     .thenAccept(finalFuture -> {
                         List<ConsumerImpl<T>> newConsumerList = newPartitions.stream()
-                            .map(partitionTopic -> consumers.get(partitionTopic))
+                            .map(consumers::get)
                             .collect(Collectors.toList());
 
                         startReceivingMessages(newConsumerList);

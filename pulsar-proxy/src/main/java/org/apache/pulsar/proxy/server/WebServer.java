@@ -203,9 +203,7 @@ public class WebServer {
 
             Arrays.stream(server.getConnectors())
                 .filter(c -> c instanceof ServerConnector)
-                .findFirst().ifPresent(c -> {
-                        WebServer.this.externalServicePort = ((ServerConnector) c).getPort();
-                    });
+                .findFirst().ifPresent(c -> WebServer.this.externalServicePort = ((ServerConnector) c).getPort());
 
             // server reports URI of first servlet, we want to strip that path off
             URI reportedURI = server.getURI();

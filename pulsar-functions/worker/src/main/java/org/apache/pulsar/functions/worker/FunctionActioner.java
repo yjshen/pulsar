@@ -311,71 +311,68 @@ public class FunctionActioner {
         //cleanup subscriptions
         if (details.getSource().getCleanupSubscription()) {
             Map<String, Function.ConsumerSpec> consumerSpecMap = details.getSource().getInputSpecsMap();
-            consumerSpecMap.entrySet().forEach(new Consumer<Map.Entry<String, Function.ConsumerSpec>>() {
-                @Override
-                public void accept(Map.Entry<String, Function.ConsumerSpec> stringConsumerSpecEntry) {
+            consumerSpecMap.entrySet().forEach(stringConsumerSpecEntry -> {
 
-                    Function.ConsumerSpec consumerSpec = stringConsumerSpecEntry.getValue();
-                    String topic = stringConsumerSpecEntry.getKey();
+                Function.ConsumerSpec consumerSpec = stringConsumerSpecEntry.getValue();
+                String topic = stringConsumerSpecEntry.getKey();
 
-                    String subscriptionName = isBlank(functionRuntimeInfo.getFunctionInstance().getFunctionMetaData().getFunctionDetails().getSource().getSubscriptionName())
-                            ? InstanceUtils.getDefaultSubscriptionName(functionRuntimeInfo.getFunctionInstance().getFunctionMetaData().getFunctionDetails())
-                            : functionRuntimeInfo.getFunctionInstance().getFunctionMetaData().getFunctionDetails().getSource().getSubscriptionName();
+                String subscriptionName = isBlank(functionRuntimeInfo.getFunctionInstance().getFunctionMetaData().getFunctionDetails().getSource().getSubscriptionName())
+                        ? InstanceUtils.getDefaultSubscriptionName(functionRuntimeInfo.getFunctionInstance().getFunctionMetaData().getFunctionDetails())
+                        : functionRuntimeInfo.getFunctionInstance().getFunctionMetaData().getFunctionDetails().getSource().getSubscriptionName();
 
-                    try {
-                        Actions.newBuilder()
-                                .addAction(
-                                        Actions.Action.builder()
-                                                .actionName(String.format("Cleaning up subscriptions for function %s", fqfn))
-                                                .numRetries(10)
-                                                .sleepBetweenInvocationsMs(1000)
-                                                .supplier(() -> {
-                                                    try {
-                                                        if (consumerSpec.getIsRegexPattern()) {
-                                                            pulsarAdmin.namespaces().unsubscribeNamespace(TopicName
-                                                                    .get(topic).getNamespace(), subscriptionName);
-                                                        } else {
-                                                            pulsarAdmin.topics().deleteSubscription(topic,
-                                                                    subscriptionName);
-                                                        }
-                                                    } catch (PulsarAdminException e) {
-                                                        if (e instanceof PulsarAdminException.NotFoundException) {
-                                                            return Actions.ActionResult.builder()
-                                                                    .success(true)
-                                                                    .build();
-                                                        } else {
-                                                            // for debugging purposes
-                                                            List<Map<String, String>> existingConsumers = Collections.emptyList();
-                                                            try {
-                                                                TopicStats stats = pulsarAdmin.topics().getStats(topic);
-                                                                SubscriptionStats sub = stats.subscriptions.get(subscriptionName);
-                                                                if (sub != null) {
-                                                                    existingConsumers = sub.consumers.stream()
-                                                                            .map(consumerStats -> consumerStats.metadata)
-                                                                            .collect(Collectors.toList());
-                                                                }
-                                                            } catch (PulsarAdminException e1) {
-
-                                                            }
-
-                                                            String errorMsg = e.getHttpError() != null ? e.getHttpError() : e.getMessage();
-                                                            return Actions.ActionResult.builder()
-                                                                    .success(false)
-                                                                    .errorMsg(String.format("%s - existing consumers: %s", errorMsg, existingConsumers))
-                                                                    .build();
-                                                        }
+                try {
+                    Actions.newBuilder()
+                            .addAction(
+                                    Actions.Action.builder()
+                                            .actionName(String.format("Cleaning up subscriptions for function %s", fqfn))
+                                            .numRetries(10)
+                                            .sleepBetweenInvocationsMs(1000)
+                                            .supplier(() -> {
+                                                try {
+                                                    if (consumerSpec.getIsRegexPattern()) {
+                                                        pulsarAdmin.namespaces().unsubscribeNamespace(TopicName
+                                                                .get(topic).getNamespace(), subscriptionName);
+                                                    } else {
+                                                        pulsarAdmin.topics().deleteSubscription(topic,
+                                                                subscriptionName);
                                                     }
+                                                } catch (PulsarAdminException e) {
+                                                    if (e instanceof PulsarAdminException.NotFoundException) {
+                                                        return Actions.ActionResult.builder()
+                                                                .success(true)
+                                                                .build();
+                                                    } else {
+                                                        // for debugging purposes
+                                                        List<Map<String, String>> existingConsumers = Collections.emptyList();
+                                                        try {
+                                                            TopicStats stats = pulsarAdmin.topics().getStats(topic);
+                                                            SubscriptionStats sub = stats.subscriptions.get(subscriptionName);
+                                                            if (sub != null) {
+                                                                existingConsumers = sub.consumers.stream()
+                                                                        .map(consumerStats -> consumerStats.metadata)
+                                                                        .collect(Collectors.toList());
+                                                            }
+                                                        } catch (PulsarAdminException e1) {
 
-                                                    return Actions.ActionResult.builder()
-                                                            .success(true)
-                                                            .build();
+                                                        }
 
-                                                })
-                                                .build())
-                                .run();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+                                                        String errorMsg = e.getHttpError() != null ? e.getHttpError() : e.getMessage();
+                                                        return Actions.ActionResult.builder()
+                                                                .success(false)
+                                                                .errorMsg(String.format("%s - existing consumers: %s", errorMsg, existingConsumers))
+                                                                .build();
+                                                    }
+                                                }
+
+                                                return Actions.ActionResult.builder()
+                                                        .success(true)
+                                                        .build();
+
+                                            })
+                                            .build())
+                            .run();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
             });
         }

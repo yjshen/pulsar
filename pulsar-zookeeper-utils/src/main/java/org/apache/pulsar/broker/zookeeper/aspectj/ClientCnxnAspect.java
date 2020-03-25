@@ -53,7 +53,7 @@ import org.slf4j.LoggerFactory;
 public class ClientCnxnAspect {
 
     public static enum EventType {
-        write, read, other;
+        write, read, other
     }
     
     private static ExecutorService eventProcessExecutor;

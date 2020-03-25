@@ -79,7 +79,7 @@ public class SparkStreamingPulsarReceiverExample {
         return list.iterator();
       })
         .mapToPair(x -> new Tuple2<String, Integer>(x, 1))
-        .reduceByKey((x, y) -> x + y);
+        .reduceByKey(Integer::sum);
 
     result.print();
 

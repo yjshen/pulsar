@@ -168,7 +168,7 @@ public class PerformanceClient {
         HashMap<String, Tuple> producersMap = new HashMap<>();
         String produceBaseEndPoint = baseUrl + "ws/producer" + topicName;
         for (int i = 0; i < numOfTopic; i++) {
-            String topic = numOfTopic > 1 ? produceBaseEndPoint + String.valueOf(i) : produceBaseEndPoint;
+            String topic = numOfTopic > 1 ? produceBaseEndPoint + i : produceBaseEndPoint;
             URI produceUri = URI.create(topic);
 
             WebSocketClient produceClient = new WebSocketClient(new SslContextFactory(true));

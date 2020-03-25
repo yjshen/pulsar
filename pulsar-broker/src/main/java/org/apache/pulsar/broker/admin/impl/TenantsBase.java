@@ -228,7 +228,7 @@ public class TenantsBase extends AdminResource {
     private void validateClusters(TenantInfo info) {
         // empty cluster shouldn't be allowed
         if (info == null || info.getAllowedClusters().stream().filter(c -> !StringUtils.isBlank(c)).collect(Collectors.toSet()).isEmpty()
-            || info.getAllowedClusters().stream().anyMatch(ac -> StringUtils.isBlank(ac))) {
+            || info.getAllowedClusters().stream().anyMatch(StringUtils::isBlank)) {
             log.warn("[{}] Failed to validate due to clusters are empty", clientAppId());
             throw new RestException(Status.PRECONDITION_FAILED, "Clusters can not be empty");
         }

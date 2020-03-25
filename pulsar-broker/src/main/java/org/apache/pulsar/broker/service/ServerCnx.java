@@ -1164,9 +1164,7 @@ public class ServerCnx extends PulsarHandler {
                 final long producerId = send.getProducerId();
                 final long sequenceId = send.getSequenceId();
                 final long highestSequenceId = send.getHighestSequenceId();
-                service.getTopicOrderedExecutor().executeOrdered(producer.getTopic().getName(), SafeRun.safeRun(() -> {
-                    ctx.writeAndFlush(Commands.newSendReceipt(producerId, sequenceId, highestSequenceId, -1, -1), ctx.voidPromise());
-                }));
+                service.getTopicOrderedExecutor().executeOrdered(producer.getTopic().getName(), SafeRun.safeRun(() -> ctx.writeAndFlush(Commands.newSendReceipt(producerId, sequenceId, highestSequenceId, -1, -1), ctx.voidPromise())));
                 producer.recordMessageDrop(send.getNumMessages());
                 return;
             } else {
@@ -1571,10 +1569,8 @@ public class ServerCnx extends PulsarHandler {
                     ctx.writeAndFlush(Commands.newGetOrCreateSchemaResponseError(
                             requestId, errorCode, ex.getMessage()));
                     return null;
-                }).thenAccept(schemaVersion -> {
-                        ctx.writeAndFlush(Commands.newGetOrCreateSchemaResponse(
-                                requestId, schemaVersion));
-                });
+                }).thenAccept(schemaVersion -> ctx.writeAndFlush(Commands.newGetOrCreateSchemaResponse(
+                        requestId, schemaVersion)));
             } else {
                 ctx.writeAndFlush(Commands.newGetOrCreateSchemaResponseError(
                         requestId, ServerError.TopicNotFound, "Topic not found"));

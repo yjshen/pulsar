@@ -128,7 +128,7 @@ public class PulsarKafkaProducer<K, V> implements Producer<K, V> {
         partitioner.configure(producerConfig.originals());
 
         this.properties = new Properties();
-        producerConfig.originals().forEach((k, v) -> properties.put(k, v));
+        producerConfig.originals().forEach(properties::put);
 
         long keepAliveIntervalMs = Long.parseLong(properties.getProperty(ProducerConfig.CONNECTIONS_MAX_IDLE_MS_CONFIG, "30000"));
 
@@ -212,7 +212,7 @@ public class PulsarKafkaProducer<K, V> implements Producer<K, V> {
         org.apache.pulsar.client.api.Producer<byte[]> producer;
 
         try {
-            producer = producers.computeIfAbsent(record.topic(), topic -> createNewProducer(topic));
+            producer = producers.computeIfAbsent(record.topic(), this::createNewProducer);
         } catch (Exception e) {
             if (callback != null) {
                 callback.onCompletion(null, e);
@@ -226,9 +226,7 @@ public class PulsarKafkaProducer<K, V> implements Producer<K, V> {
         int messageSize = buildMessage(messageBuilder, record);
 
         CompletableFuture<RecordMetadata> future = new CompletableFuture<>();
-        messageBuilder.sendAsync().thenAccept((messageId) -> {
-            future.complete(getRecordMetadata(record.topic(), messageBuilder, messageId, messageSize));
-        }).exceptionally(ex -> {
+        messageBuilder.sendAsync().thenAccept((messageId) -> future.complete(getRecordMetadata(record.topic(), messageBuilder, messageId, messageSize))).exceptionally(ex -> {
             future.completeExceptionally(ex);
             return null;
         });
@@ -247,7 +245,7 @@ public class PulsarKafkaProducer<K, V> implements Producer<K, V> {
     @Override
     public void flush() {
         producers.values().stream()
-                .map(p -> p.flushAsync())
+                .map(org.apache.pulsar.client.api.Producer::flushAsync)
                 .collect(Collectors.toList())
                 .forEach(CompletableFuture::join);
     }
@@ -288,12 +286,10 @@ public class PulsarKafkaProducer<K, V> implements Producer<K, V> {
             synchronized (this){
                 cluster = cluster.withPartitions(readPartitionsInfo(topic));
             }
-            List<org.apache.pulsar.client.api.ProducerInterceptor> wrappedInterceptors = interceptors.stream()
-                    .map(interceptor -> new KafkaProducerInterceptorWrapper(interceptor, keySchema, valueSchema, topic))
-                    .collect(Collectors.toList());
             return pulsarProducerBuilder.clone()
                     .topic(topic)
-                    .intercept(wrappedInterceptors.toArray(new org.apache.pulsar.client.api.ProducerInterceptor[wrappedInterceptors.size()]))
+                    .intercept(interceptors.stream()
+                            .map(interceptor -> new KafkaProducerInterceptorWrapper(interceptor, keySchema, valueSchema, topic)).toArray(org.apache.pulsar.client.api.ProducerInterceptor[]::new))
                     .create();
         } catch (PulsarClientException e) {
             throw new RuntimeException(e);

@@ -142,7 +142,7 @@ public class NonPersistentTopic extends AbstractTopic implements Topic {
         try {
             Policies policies = brokerService.pulsar().getConfigurationCache().policiesCache()
                     .get(AdminResource.path(POLICIES, TopicName.get(topic).getNamespace()))
-                    .orElseThrow(() -> new KeeperException.NoNodeException());
+                    .orElseThrow(KeeperException.NoNodeException::new);
             isEncryptionRequired = policies.encryption_required;
             isAllowAutoUpdateSchema = policies.is_allow_auto_update_schema;
             setSchemaCompatibilityStrategy(policies);
@@ -356,9 +356,7 @@ public class NonPersistentTopic extends AbstractTopic implements Topic {
                 replicators.forEach((cluster, replicator) -> futures.add(replicator.disconnect()));
                 producers.values().forEach(producer -> futures.add(producer.disconnect()));
                 subscriptions.forEach((s, sub) -> futures.add(sub.disconnect()));
-                FutureUtil.waitForAll(futures).thenRun(() -> {
-                    closeClientFuture.complete(null);
-                }).exceptionally(ex -> {
+                FutureUtil.waitForAll(futures).thenRun(() -> closeClientFuture.complete(null)).exceptionally(ex -> {
                     log.error("[{}] Error closing clients", topic, ex);
                     isFenced = false;
                     closeClientFuture.completeExceptionally(ex);
@@ -490,7 +488,7 @@ public class NonPersistentTopic extends AbstractTopic implements Topic {
         try {
             policies = brokerService.pulsar().getConfigurationCache().policiesCache()
                     .get(AdminResource.path(POLICIES, name.getNamespace()))
-                    .orElseThrow(() -> new KeeperException.NoNodeException());
+                    .orElseThrow(KeeperException.NoNodeException::new);
         } catch (Exception e) {
             CompletableFuture<Void> future = new CompletableFuture<>();
             future.completeExceptionally(new ServerMetadataException(e));
@@ -566,10 +564,7 @@ public class NonPersistentTopic extends AbstractTopic implements Topic {
 
         String name = NonPersistentReplicator.getReplicatorName(replicatorPrefix, remoteCluster);
 
-        replicators.get(remoteCluster).disconnect().thenRun(() -> {
-            log.info("[{}] Successfully removed replicator {}", name, remoteCluster);
-
-        }).exceptionally(e -> {
+        replicators.get(remoteCluster).disconnect().thenRun(() -> log.info("[{}] Successfully removed replicator {}", name, remoteCluster)).exceptionally(e -> {
             log.error("[{}] Failed to close replication producer {} {}", topic, name, e.getMessage(), e);
             future.completeExceptionally(e);
             return null;

@@ -67,7 +67,7 @@ public class PersistentTransactionBufferReader implements TransactionBufferReade
         return meta.readEntries(numEntries, currentSequenceId)
                    .thenCompose(this::readEntry)
                    .thenApply(entries -> entries.stream()
-                                                .sorted(Comparator.comparingLong(entry -> entry.sequenceId()))
+                                                .sorted(Comparator.comparingLong(TransactionEntry::sequenceId))
                                                 .collect(Collectors.toList()));
     }
 

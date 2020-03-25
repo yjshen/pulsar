@@ -43,5 +43,5 @@ public enum ConsumerCryptoFailureAction {
      * <p>Delivered encrypted message contains {@link EncryptionContext} which contains encryption and compression
      * information in it using which application can decrypt consumed message payload.
      */
-    CONSUME;
+    CONSUME
 }

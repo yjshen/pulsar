@@ -532,7 +532,7 @@ public class CmdSources extends CmdBase {
                 print(admin.sources().getSourceStatus(tenant, namespace, sourceName));
             } else {
                 print(admin.sources().getSourceStatus(tenant, namespace, sourceName, Integer.parseInt(instanceId)));
-            };
+            }
         }
     }
 

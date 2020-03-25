@@ -80,9 +80,7 @@ public class ProxyServiceStarter {
         install();
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss,SSS");
-        Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> {
-            System.out.println(String.format("%s [%s] error Uncaught exception in thread %s: %s", dateFormat.format(new Date()), thread.getContextClassLoader(), thread.getName(), exception.getMessage()));
-        });
+        Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> System.out.println(String.format("%s [%s] error Uncaught exception in thread %s: %s", dateFormat.format(new Date()), thread.getContextClassLoader(), thread.getName(), exception.getMessage())));
 
         JCommander jcommander = new JCommander();
         try {

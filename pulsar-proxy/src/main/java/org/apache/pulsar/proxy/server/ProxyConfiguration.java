@@ -404,7 +404,7 @@ public class ProxyConfiguration implements PulsarConfiguration {
         Map<String, Map<String, String>> redirects = new HashMap<>();
         Pattern redirectPattern = Pattern.compile("^httpReverseProxy\\.([^\\.]*)\\.(.+)$");
         Map<String, List<Matcher>> groups = properties.stringPropertyNames().stream()
-            .map((s) -> redirectPattern.matcher(s))
+            .map(redirectPattern::matcher)
             .filter(Matcher::matches)
             .collect(Collectors.groupingBy((m) -> m.group(1))); // group by name
 

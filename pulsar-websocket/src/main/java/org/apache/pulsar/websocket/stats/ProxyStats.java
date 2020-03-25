@@ -55,7 +55,7 @@ public class ProxyStats {
         this.metricsCollection = Lists.newArrayList();
         this.tempMetricsCollection = Lists.newArrayList();
         // schedule stat generation task every 1 minute
-        service.getExecutor().scheduleAtFixedRate(() -> generate(), 120, 60, TimeUnit.SECONDS);
+        service.getExecutor().scheduleAtFixedRate(this::generate, 120, 60, TimeUnit.SECONDS);
     }
 
     /**

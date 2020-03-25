@@ -252,10 +252,8 @@ public class LookupProxyHandler {
                 long requestId = proxyConnection.newRequestId();
                 ByteBuf command;
                 command = Commands.newPartitionMetadataRequest(topicName.toString(), requestId);
-                clientCnx.newLookup(command, requestId).thenAccept(lookupDataResult -> {
-                    proxyConnection.ctx().writeAndFlush(
-                            Commands.newPartitionMetadataResponse(lookupDataResult.partitions, clientRequestId));
-                }).exceptionally((ex) -> {
+                clientCnx.newLookup(command, requestId).thenAccept(lookupDataResult -> proxyConnection.ctx().writeAndFlush(
+                        Commands.newPartitionMetadataResponse(lookupDataResult.partitions, clientRequestId))).exceptionally((ex) -> {
                     log.warn("[{}] failed to get Partitioned metadata : {}", topicName.toString(),
                             ex.getCause().getMessage(), ex);
                     proxyConnection.ctx().writeAndFlush(Commands.newLookupErrorResponse(ServerError.ServiceNotReady,
@@ -381,10 +379,8 @@ public class LookupProxyHandler {
             }
             command = Commands.newGetSchema(requestId, topic,
                     Optional.ofNullable(schemaVersion).map(BytesSchemaVersion::of));
-            clientCnx.sendGetRawSchema(command, requestId).thenAccept(response -> {
-                proxyConnection.ctx().writeAndFlush(
-                        Commands.newGetSchemaResponse(clientRequestId, response));
-            }).exceptionally(ex -> {
+            clientCnx.sendGetRawSchema(command, requestId).thenAccept(response -> proxyConnection.ctx().writeAndFlush(
+                    Commands.newGetSchemaResponse(clientRequestId, response))).exceptionally(ex -> {
                 log.warn("[{}] Failed to get schema {}: {}", clientAddress, topic, ex);
                 proxyConnection.ctx().writeAndFlush(
                         Commands.newError(clientRequestId, ServerError.ServiceNotReady, ex.getMessage()));

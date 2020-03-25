@@ -213,9 +213,9 @@ public class WindowFunctionExecutor<I, O> implements Function<I, O> {
                     expiredTuples, Long referenceTime) {
                 processWindow(
                         context,
-                        tuples.stream().map(event -> event.get()).collect(Collectors.toList()),
-                        newTuples.stream().map(event -> event.get()).collect(Collectors.toList()),
-                        expiredTuples.stream().map(event -> event.get()).collect(Collectors.toList()),
+                        tuples.stream().map(Event::get).collect(Collectors.toList()),
+                        newTuples.stream().map(Event::get).collect(Collectors.toList()),
+                        expiredTuples.stream().map(Event::get).collect(Collectors.toList()),
                         referenceTime);
             }
         };

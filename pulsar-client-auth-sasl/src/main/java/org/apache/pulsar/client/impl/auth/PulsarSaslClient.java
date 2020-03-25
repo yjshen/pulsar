@@ -75,13 +75,10 @@ public class PulsarSaslClient {
             serverPrincipal);
 
         try {
-            this.saslClient = Subject.doAs(clientSubject, new PrivilegedExceptionAction<SaslClient>() {
-                @Override
-                public SaslClient run() throws SaslException {
-                    String[] mechs = {"GSSAPI"};
-                    return Sasl.createSaslClient(mechs, clientPrincipalName, serviceName, serviceHostname, null,
-                        new ClientCallbackHandler());
-                }
+            this.saslClient = Subject.doAs(clientSubject, (PrivilegedExceptionAction<SaslClient>) () -> {
+                String[] mechs = {"GSSAPI"};
+                return Sasl.createSaslClient(mechs, clientPrincipalName, serviceName, serviceHostname, null,
+                    new ClientCallbackHandler());
             });
         } catch (PrivilegedActionException err) {
             log.error("GSSAPI client error", err.getCause());
@@ -100,12 +97,7 @@ public class PulsarSaslClient {
         }
         try {
             if (clientSubject != null) {
-                final byte[] retval = Subject.doAs(clientSubject, new PrivilegedExceptionAction<byte[]>() {
-                    @Override
-                    public byte[] run() throws SaslException {
-                        return saslClient.evaluateChallenge(saslToken.getBytes());
-                    }
-                });
+                final byte[] retval = Subject.doAs(clientSubject, (PrivilegedExceptionAction<byte[]>) () -> saslClient.evaluateChallenge(saslToken.getBytes()));
                 return AuthData.of(retval);
 
             } else {

@@ -185,7 +185,7 @@ public class ClientCnx extends PulsarHandler {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        this.timeoutTask = this.eventLoopGroup.scheduleAtFixedRate(() -> checkRequestTimeout(), operationTimeoutMs,
+        this.timeoutTask = this.eventLoopGroup.scheduleAtFixedRate(this::checkRequestTimeout, operationTimeoutMs,
                 operationTimeoutMs, TimeUnit.MILLISECONDS);
 
         if (proxyToTargetBrokerAddress == null) {

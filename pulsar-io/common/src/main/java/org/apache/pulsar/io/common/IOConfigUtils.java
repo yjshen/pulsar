@@ -36,11 +36,11 @@ import java.util.function.Function;
 @Slf4j
 public class IOConfigUtils {
     public static <T> T loadWithSecrets(Map<String, Object> map, Class<T> clazz, SourceContext sourceContext) {
-        return loadWithSecrets(map, clazz, secretName -> sourceContext.getSecret(secretName));
+        return loadWithSecrets(map, clazz, sourceContext::getSecret);
     }
 
     public static <T> T loadWithSecrets(Map<String, Object> map, Class<T> clazz, SinkContext sinkContext) {
-        return loadWithSecrets(map, clazz, secretName -> sinkContext.getSecret(secretName));
+        return loadWithSecrets(map, clazz, sinkContext::getSecret);
     }
 
 

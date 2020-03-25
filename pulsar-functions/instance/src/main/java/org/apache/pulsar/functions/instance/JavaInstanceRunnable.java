@@ -590,19 +590,11 @@ public class JavaInstanceRunnable implements AutoCloseable, Runnable {
             functionStatusBuilder.setNumReceived((long) stats.getTotalRecordsReceived());
             functionStatusBuilder.setNumSuccessfullyProcessed((long) stats.getTotalProcessedSuccessfully());
             functionStatusBuilder.setNumUserExceptions((long) stats.getTotalUserExceptions());
-            stats.getLatestUserExceptions().forEach(ex -> {
-                functionStatusBuilder.addLatestUserExceptions(ex);
-            });
+            stats.getLatestUserExceptions().forEach(functionStatusBuilder::addLatestUserExceptions);
             functionStatusBuilder.setNumSystemExceptions((long) stats.getTotalSysExceptions());
-            stats.getLatestSystemExceptions().forEach(ex -> {
-                functionStatusBuilder.addLatestSystemExceptions(ex);
-            });
-            stats.getLatestSourceExceptions().forEach(ex -> {
-                functionStatusBuilder.addLatestSourceExceptions(ex);
-            });
-            stats.getLatestSinkExceptions().forEach(ex -> {
-                functionStatusBuilder.addLatestSinkExceptions(ex);
-            });
+            stats.getLatestSystemExceptions().forEach(functionStatusBuilder::addLatestSystemExceptions);
+            stats.getLatestSourceExceptions().forEach(functionStatusBuilder::addLatestSourceExceptions);
+            stats.getLatestSinkExceptions().forEach(functionStatusBuilder::addLatestSinkExceptions);
             functionStatusBuilder.setAverageLatency(stats.getAvgProcessLatency());
             functionStatusBuilder.setLastInvocationTime((long) stats.getLastInvocation());
         }
@@ -659,13 +651,11 @@ public class JavaInstanceRunnable implements AutoCloseable, Runnable {
                 pulsarSourceConfig.getTopicSchema().put(topic, consumerConfig);
             });
 
-            sourceSpec.getTopicsToSerDeClassNameMap().forEach((topic, serde) -> {
-                pulsarSourceConfig.getTopicSchema().put(topic,
-                        ConsumerConfig.builder()
-                                .serdeClassName(serde)
-                                .isRegexPattern(false)
-                                .build());
-            });
+            sourceSpec.getTopicsToSerDeClassNameMap().forEach((topic, serde) -> pulsarSourceConfig.getTopicSchema().put(topic,
+                    ConsumerConfig.builder()
+                            .serdeClassName(serde)
+                            .isRegexPattern(false)
+                            .build()));
 
             if (!StringUtils.isEmpty(sourceSpec.getTopicsPattern())) {
                 pulsarSourceConfig.getTopicSchema().get(sourceSpec.getTopicsPattern()).setRegexPattern(true);

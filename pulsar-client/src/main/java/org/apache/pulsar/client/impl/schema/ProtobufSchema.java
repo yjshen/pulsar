@@ -78,14 +78,9 @@ public class ProtobufSchema<T extends com.google.protobuf.GeneratedMessageV3> ex
 
     private String getParsingInfo(T protoMessageInstance) {
         List<ProtoBufParsingInfo> protoBufParsingInfos = new LinkedList<>();
-        protoMessageInstance.getDescriptorForType().getFields().forEach(new Consumer<Descriptors.FieldDescriptor>() {
-            @Override
-            public void accept(Descriptors.FieldDescriptor fieldDescriptor) {
-                protoBufParsingInfos.add(new ProtoBufParsingInfo(fieldDescriptor.getNumber(),
-                        fieldDescriptor.getName(), fieldDescriptor.getType().name(),
-                        fieldDescriptor.toProto().getLabel().name(), null));
-            }
-        });
+        protoMessageInstance.getDescriptorForType().getFields().forEach(fieldDescriptor -> protoBufParsingInfos.add(new ProtoBufParsingInfo(fieldDescriptor.getNumber(),
+                fieldDescriptor.getName(), fieldDescriptor.getType().name(),
+                fieldDescriptor.toProto().getLabel().name(), null)));
 
         try {
             return new ObjectMapper().writeValueAsString(protoBufParsingInfos);

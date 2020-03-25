@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.broker.BrokerData;
+import org.apache.pulsar.broker.BundleData;
 import org.apache.pulsar.broker.PulsarService;
 import org.apache.pulsar.broker.ServiceConfiguration;
 import org.apache.pulsar.broker.loadbalance.BrokerHostUsage;
@@ -431,26 +432,24 @@ public class LoadManagerShared {
             final String antiAffinityGroup = policies.get().antiAffinityGroup;
             final Map<String, Integer> brokerToAntiAffinityNamespaceCount = new ConcurrentHashMap<>();
             final List<CompletableFuture<Void>> futures = Lists.newArrayList();
-            brokerToNamespaceToBundleRange.forEach((broker, nsToBundleRange) -> {
-                nsToBundleRange.forEach((ns, bundleRange) -> {
-                    if (bundleRange.isEmpty()) {
-                        return;
-                    }
+            brokerToNamespaceToBundleRange.forEach((broker, nsToBundleRange) -> nsToBundleRange.forEach((ns, bundleRange) -> {
+                if (bundleRange.isEmpty()) {
+                    return;
+                }
 
-                    CompletableFuture<Void> future = new CompletableFuture<>();
-                    futures.add(future);
-                    policiesCache.getAsync(path(POLICIES, ns)).thenAccept(nsPolicies -> {
-                        if (nsPolicies.isPresent() && antiAffinityGroup.equalsIgnoreCase(nsPolicies.get().antiAffinityGroup)) {
-                            brokerToAntiAffinityNamespaceCount.compute(broker,
-                                    (brokerName, count) -> count == null ? 1 : count + 1);
-                        }
-                        future.complete(null);
-                    }).exceptionally(ex -> {
-                        future.complete(null);
-                        return null;
-                    });
+                CompletableFuture<Void> future = new CompletableFuture<>();
+                futures.add(future);
+                policiesCache.getAsync(path(POLICIES, ns)).thenAccept(nsPolicies -> {
+                    if (nsPolicies.isPresent() && antiAffinityGroup.equalsIgnoreCase(nsPolicies.get().antiAffinityGroup)) {
+                        brokerToAntiAffinityNamespaceCount.compute(broker,
+                                (brokerName, count) -> count == null ? 1 : count + 1);
+                    }
+                    future.complete(null);
+                }).exceptionally(ex -> {
+                    future.complete(null);
+                    return null;
                 });
-            });
+            }));
             FutureUtil.waitForAll(futures)
                     .thenAccept(r -> antiAffinityNsBrokersResult.complete(brokerToAntiAffinityNamespaceCount));
         }).exceptionally(ex -> {
@@ -535,7 +534,7 @@ public class LoadManagerShared {
             BrokerData brokerData = loadData.getBrokerData().get(broker);
             long totalTopics = brokerData != null && brokerData.getPreallocatedBundleData() != null
                     ? brokerData.getPreallocatedBundleData().values().stream()
-                            .mapToLong((preAllocatedBundle) -> preAllocatedBundle.getTopics()).sum()
+                            .mapToLong(BundleData::getTopics).sum()
                             + brokerData.getLocalData().getNumTopics()
                     : 0;
             return totalTopics <= loadBalancerBrokerMaxTopics;

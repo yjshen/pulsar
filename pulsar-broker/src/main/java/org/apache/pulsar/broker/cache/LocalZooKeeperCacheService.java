@@ -82,7 +82,7 @@ public class LocalZooKeeperCacheService {
 
             @Override
             public CompletableFuture<Optional<LocalPolicies>> getAsync(String path) {
-                return getWithStatAsync(path).thenApply(entry -> entry.map(e -> e.getKey()));
+                return getWithStatAsync(path).thenApply(entry -> entry.map(Entry::getKey));
             }
 
             @Override

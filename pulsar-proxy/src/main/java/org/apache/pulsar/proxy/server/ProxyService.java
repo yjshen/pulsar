@@ -142,12 +142,8 @@ public class ProxyService implements Closeable {
         statsExecutor = Executors
                 .newSingleThreadScheduledExecutor(new DefaultThreadFactory("proxy-stats-executor"));
         statsExecutor.schedule(()->{
-            ((ProxyService) this).clientCnxs.forEach(cnx -> {
-                cnx.getDirectProxyHandler().getInboundChannelRequestsRate().calculateRate();
-            }); 
-            ((ProxyService) this).topicStats.forEach((topic, stats) -> {
-                stats.calculate();
-            });
+            ((ProxyService) this).clientCnxs.forEach(cnx -> cnx.getDirectProxyHandler().getInboundChannelRequestsRate().calculateRate());
+            ((ProxyService) this).topicStats.forEach((topic, stats) -> stats.calculate());
         }, 60, TimeUnit.SECONDS);
     }
 

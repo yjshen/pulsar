@@ -188,7 +188,7 @@ public class ConcurrentLongPairSet implements LongPairSet {
      * @return a new list of keys with max provided numberOfItems (makes a copy)
      */
     public Set<LongPair> items(int numberOfItems) {
-        return items(numberOfItems, (item1, item2) -> new LongPair(item1, item2));
+        return items(numberOfItems, LongPair::new);
     }
 
     @Override

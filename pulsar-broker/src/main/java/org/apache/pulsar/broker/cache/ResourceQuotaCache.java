@@ -93,7 +93,7 @@ public class ResourceQuotaCache {
 
     private ResourceQuota readQuotaFromZnode(String zpath) {
         try {
-            return this.resourceQuotaCache.get(zpath).orElseGet(() -> new ResourceQuota());
+            return this.resourceQuotaCache.get(zpath).orElseGet(ResourceQuota::new);
         } catch (Exception e) {
             LOG.warn("Failed to read quota from znode {}: {}", zpath, e);
             return new ResourceQuota();

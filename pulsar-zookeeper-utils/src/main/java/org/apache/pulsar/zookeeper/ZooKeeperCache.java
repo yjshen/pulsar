@@ -258,7 +258,7 @@ public abstract class ZooKeeperCache implements Watcher {
      * @throws Exception
      */
     public <T> Optional<T> getData(final String path, final Deserializer<T> deserializer) throws Exception {
-        return getData(path, this, deserializer).map(e -> e.getKey());
+        return getData(path, this, deserializer).map(Entry::getKey);
     }
 
     public <T> Optional<Entry<T, Stat>> getEntry(final String path, final Deserializer<T> deserializer) throws Exception {
@@ -284,9 +284,7 @@ public abstract class ZooKeeperCache implements Watcher {
 
     public <T> CompletableFuture<Optional<T>> getDataAsync(final String path, final Deserializer<T> deserializer) {
         CompletableFuture<Optional<T>> future = new CompletableFuture<>();
-        getDataAsync(path, this, deserializer).thenAccept(data -> {
-            future.complete(data.map(e -> e.getKey()));
-        }).exceptionally(ex -> {
+        getDataAsync(path, this, deserializer).thenAccept(data -> future.complete(data.map(Entry::getKey))).exceptionally(ex -> {
             asyncInvalidate(path);
             if (ex.getCause() instanceof NoNodeException) {
                 future.complete(Optional.empty());
@@ -434,7 +432,7 @@ public abstract class ZooKeeperCache implements Watcher {
                         existsAsync(path, watcher).thenAccept(exists -> {
                             if (exists) {
                                 getChildrenAsync(path, watcher)
-                                        .thenAccept(c -> future.complete(c))
+                                        .thenAccept(future::complete)
                                         .exceptionally(ex -> {
                                             future.completeExceptionally(ex);
                                             return null;

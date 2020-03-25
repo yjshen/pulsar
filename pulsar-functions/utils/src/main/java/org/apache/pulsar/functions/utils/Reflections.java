@@ -293,7 +293,6 @@ public class Reflections {
                 } else {
                     int arrayDimension;
                     for(arrayDimension = 0; className.charAt(arrayDimension) == '['; ++arrayDimension) {
-                        ;
                     }
 
                     Class componentType = loadClass(className.substring(arrayDimension), classLoader);

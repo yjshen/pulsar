@@ -138,8 +138,7 @@ public class ConnectorUtils {
             }
         }
 
-        Collections.sort(connectors.connectors,
-                (c1, c2) -> String.CASE_INSENSITIVE_ORDER.compare(c1.getName(), c2.getName()));
+        connectors.connectors.sort((c1, c2) -> String.CASE_INSENSITIVE_ORDER.compare(c1.getName(), c2.getName()));
 
         return connectors;
     }

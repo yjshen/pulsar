@@ -319,15 +319,11 @@ public class PulsarBrokerStarter {
 
     public static void main(String[] args) throws Exception {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss,SSS");
-        Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> {
-            System.out.println(String.format("%s [%s] error Uncaught exception in thread %s: %s", dateFormat.format(new Date()), thread.getContextClassLoader(), thread.getName(), exception.getMessage()));
-        });
+        Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> System.out.println(String.format("%s [%s] error Uncaught exception in thread %s: %s", dateFormat.format(new Date()), thread.getContextClassLoader(), thread.getName(), exception.getMessage())));
 
         BrokerStarter starter = new BrokerStarter(args);
         Runtime.getRuntime().addShutdownHook(
-            new Thread(() -> {
-                starter.shutdown();
-            })
+            new Thread(starter::shutdown)
         );
 
         PulsarByteBufAllocator.registerOOMListener(oomException -> {

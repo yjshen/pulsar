@@ -113,7 +113,7 @@ public class ParserProxyHandler extends ChannelInboundHandlerAdapter {
 
             switch (cmd.getType()) {
                 case PRODUCER:
-                    ParserProxyHandler.producerHashMap.put(String.valueOf(cmd.getProducer().getProducerId()) + "," + String.valueOf(ctx.channel().id()), cmd.getProducer().getTopic());
+                    ParserProxyHandler.producerHashMap.put(String.valueOf(cmd.getProducer().getProducerId()) + "," + ctx.channel().id(), cmd.getProducer().getTopic());
 
                     logging(ctx.channel() , cmd.getType() , "{producer:" + cmd.getProducer().getProducerName() + ",topic:" + cmd.getProducer().getTopic() + "}", null);
                     break;
@@ -123,7 +123,7 @@ public class ParserProxyHandler extends ChannelInboundHandlerAdapter {
                         logging(ctx.channel() , cmd.getType() , "", null);
                         break;
                     }
-                    topicName = TopicName.get(ParserProxyHandler.producerHashMap.get(String.valueOf(cmd.getSend().getProducerId()) + "," + String.valueOf(ctx.channel().id())));
+                    topicName = TopicName.get(ParserProxyHandler.producerHashMap.get(String.valueOf(cmd.getSend().getProducerId()) + "," + ctx.channel().id()));
                     MutableLong msgBytes = new MutableLong(0);
                     MessageParser.parseMessage(topicName,  -1L,
                             -1L,buffer,(message) -> {
@@ -138,7 +138,7 @@ public class ParserProxyHandler extends ChannelInboundHandlerAdapter {
                     break;
 
                 case SUBSCRIBE:
-                    ParserProxyHandler.consumerHashMap.put(String.valueOf(cmd.getSubscribe().getConsumerId()) + "," + String.valueOf(ctx.channel().id()) , cmd.getSubscribe().getTopic());
+                    ParserProxyHandler.consumerHashMap.put(String.valueOf(cmd.getSubscribe().getConsumerId()) + "," + ctx.channel().id(), cmd.getSubscribe().getTopic());
 
                     logging(ctx.channel() , cmd.getType() , "{consumer:" + cmd.getSubscribe().getConsumerName() + ",topic:" + cmd.getSubscribe().getTopic() + "}" , null);
                     break;

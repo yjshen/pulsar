@@ -39,6 +39,7 @@ import org.apache.pulsar.client.api.CompressionType;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
+import org.apache.pulsar.common.functions.WorkerInfo;
 import org.apache.pulsar.functions.proto.Function;
 import org.apache.pulsar.functions.proto.Function.Assignment;
 import org.apache.pulsar.functions.proto.Function.FunctionDetails;
@@ -166,7 +167,7 @@ public class SchedulerManager implements AutoCloseable {
     public void invokeScheduler() {
         
         Set<String> currentMembership = this.membershipManager.getCurrentMembership()
-                .stream().map(workerInfo -> workerInfo.getWorkerId()).collect(Collectors.toSet());
+                .stream().map(WorkerInfo::getWorkerId).collect(Collectors.toSet());
 
         List<FunctionMetaData> allFunctions = this.functionMetaDataManager.getAllFunctionMetaData();
         Map<String, Function.Instance> allInstances = computeAllInstances(allFunctions, functionRuntimeManager.getRuntimeFactory().externallyManaged());
@@ -245,7 +246,7 @@ public class SchedulerManager implements AutoCloseable {
                 this.admin.topics().triggerCompaction(workerConfig.getFunctionAssignmentTopic());
             } catch (PulsarAdminException e) {
                 log.error("Failed to trigger compaction {}", e);
-                executorService.schedule(() -> compactAssignmentTopic(), DEFAULT_ADMIN_API_BACKOFF_SEC,
+                executorService.schedule(this::compactAssignmentTopic, DEFAULT_ADMIN_API_BACKOFF_SEC,
                         TimeUnit.SECONDS);
             }
         }

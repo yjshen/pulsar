@@ -237,9 +237,7 @@ public final class SchemaUtils {
             SortedMap<String, String> sortedProperties = new TreeMap<>();
             sortedProperties.putAll(properties);
             JsonObject object = new JsonObject();
-            sortedProperties.forEach((key, value) -> {
-                object.add(key, new JsonPrimitive(value));
-            });
+            sortedProperties.forEach((key, value) -> object.add(key, new JsonPrimitive(value)));
             return object;
         }
 

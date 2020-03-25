@@ -90,28 +90,25 @@ public class LeaderElectionService {
      */
     private void elect() {
         try {
-            byte[] data = zkClient.getData(ELECTION_ROOT, new Watcher() {
-                @Override
-                public void process(WatchedEvent event) {
-                    log.warn("Type of the event is [{}] and path is [{}]", event.getType(), event.getPath());
-                    switch (event.getType()) {
-                    case NodeDeleted:
-                        log.warn("Election node {} is deleted, attempting re-election...", event.getPath());
-                        if (event.getPath().equals(ELECTION_ROOT)) {
-                            log.info("This should call elect again...");
-                            executor.execute(() -> {
-                                // If the node is deleted, attempt the re-election
-                                log.info("Broker [{}] is calling re-election from the thread",
-                                        pulsar.getSafeWebServiceAddress());
-                                elect();
-                            });
-                        }
-                        break;
-
-                    default:
-                        log.warn("Got something wrong on watch: {}", event);
-                        break;
+            byte[] data = zkClient.getData(ELECTION_ROOT, event -> {
+                log.warn("Type of the event is [{}] and path is [{}]", event.getType(), event.getPath());
+                switch (event.getType()) {
+                case NodeDeleted:
+                    log.warn("Election node {} is deleted, attempting re-election...", event.getPath());
+                    if (event.getPath().equals(ELECTION_ROOT)) {
+                        log.info("This should call elect again...");
+                        executor.execute(() -> {
+                            // If the node is deleted, attempt the re-election
+                            log.info("Broker [{}] is calling re-election from the thread",
+                                    pulsar.getSafeWebServiceAddress());
+                            elect();
+                        });
                     }
+                    break;
+
+                default:
+                    log.warn("Got something wrong on watch: {}", event);
+                    break;
                 }
             }, null);
 

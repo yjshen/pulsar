@@ -53,9 +53,7 @@ public class STSAssumeRoleProviderPlugin implements AwsCredentialProviderPlugin 
     @Override
     public software.amazon.awssdk.auth.credentials.AwsCredentialsProvider getV2CredentialsProvider() {
         StsClient client = StsClient.create();
-        return StsAssumeRoleCredentialsProvider.builder().stsClient(client).refreshRequest((req) -> {
-            req.roleArn(roleArn).roleSessionName(roleSessionName).build();
-        }).build();
+        return StsAssumeRoleCredentialsProvider.builder().stsClient(client).refreshRequest((req) -> req.roleArn(roleArn).roleSessionName(roleSessionName).build()).build();
     }
 
     @Override

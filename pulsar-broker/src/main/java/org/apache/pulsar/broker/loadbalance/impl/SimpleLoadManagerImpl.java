@@ -257,14 +257,11 @@ public class SimpleLoadManagerImpl implements LoadManager, ZooKeeperCacheListene
                 });
 
         availableActiveBrokers = new ZooKeeperChildrenCache(pulsar.getLocalZkCache(), LOADBALANCE_BROKERS_ROOT);
-        availableActiveBrokers.registerListener(new ZooKeeperCacheListener<Set<String>>() {
-            @Override
-            public void onUpdate(String path, Set<String> data, Stat stat) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Update Received for path {}", path);
-                }
-                scheduler.submit(SimpleLoadManagerImpl.this::updateRanking);
+        availableActiveBrokers.registerListener((path, data, stat) -> {
+            if (log.isDebugEnabled()) {
+                log.debug("Update Received for path {}", path);
             }
+            scheduler.submit(SimpleLoadManagerImpl.this::updateRanking);
         });
         this.pulsar = pulsar;
     }
@@ -288,7 +285,7 @@ public class SimpleLoadManagerImpl implements LoadManager, ZooKeeperCacheListene
                 }
             }
             String lookupServiceAddress = getBrokerAddress();
-;            brokerZnodePath = LOADBALANCE_BROKERS_ROOT + "/" + lookupServiceAddress;
+            brokerZnodePath = LOADBALANCE_BROKERS_ROOT + "/" + lookupServiceAddress;
             LoadReport loadReport = null;
             try {
                 loadReport = generateLoadReport();
@@ -1048,7 +1045,7 @@ public class SimpleLoadManagerImpl implements LoadManager, ZooKeeperCacheListene
                     try {
                         String key = String.format("%s/%s", LOADBALANCE_BROKERS_ROOT, broker);
                         LoadReport lr = loadReportCacheZk.get(key)
-                                .orElseThrow(() -> new KeeperException.NoNodeException());
+                                .orElseThrow(KeeperException.NoNodeException::new);
                         ResourceUnit ru = new SimpleResourceUnit(String.format("http://%s", lr.getName()),
                                 fromLoadReport(lr));
                         this.currentLoadReports.put(ru, lr);

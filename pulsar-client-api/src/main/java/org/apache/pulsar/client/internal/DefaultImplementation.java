@@ -88,7 +88,7 @@ public class DefaultImplementation {
     }
 
     public static ClientBuilder newClientBuilder() {
-        return catchExceptions(() -> CLIENT_BUILDER_IMPL.newInstance());
+        return catchExceptions(CLIENT_BUILDER_IMPL::newInstance);
     }
 
     public static MessageId newMessageId(long ledgerId, long entryId, int partitionIndex) {

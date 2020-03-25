@@ -148,7 +148,7 @@ public class PulsarKafkaProducer<K, V> extends Producer<K, V> {
         org.apache.pulsar.client.api.Producer<byte[]> producer;
 
         try {
-            producer = producers.computeIfAbsent(message.topic(), topic -> createNewProducer(topic));
+            producer = producers.computeIfAbsent(message.topic(), this::createNewProducer);
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to create producer for " + message.topic(), e);
         }

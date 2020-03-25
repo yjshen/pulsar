@@ -80,7 +80,7 @@ public class RedisSink implements Sink<byte[]> {
         batchSize = redisSinkConfig.getBatchSize();
         incomingList = Lists.newArrayList();
         flushExecutor = Executors.newScheduledThreadPool(1);
-        flushExecutor.scheduleAtFixedRate(() -> flush(), batchTimeMs, batchTimeMs, TimeUnit.MILLISECONDS);
+        flushExecutor.scheduleAtFixedRate(this::flush, batchTimeMs, batchTimeMs, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -91,7 +91,7 @@ public class RedisSink implements Sink<byte[]> {
             currentSize = incomingList.size();
         }
         if (currentSize == batchSize) {
-            flushExecutor.submit(() -> flush());
+            flushExecutor.submit(this::flush);
         }
     }
 
@@ -143,15 +143,15 @@ public class RedisSink implements Sink<byte[]> {
 
                 if (!future.await(operationTimeoutMs, TimeUnit.MILLISECONDS) || future.getError() != null) {
                     log.warn("Operation failed with error {} or timeout {} is exceeded", future.getError(), operationTimeoutMs);
-                    recordsToFlush.forEach(tRecord -> tRecord.fail());
+                    recordsToFlush.forEach(Record::fail);
                     return;
                 }
             }
-            recordsToFlush.forEach(tRecord -> tRecord.ack());
+            recordsToFlush.forEach(Record::ack);
             recordsToSet.clear();
             recordsToFlush.clear();
         } catch (InterruptedException e) {
-            recordsToFlush.forEach(tRecord -> tRecord.fail());
+            recordsToFlush.forEach(Record::fail);
             log.error("Redis mset data interrupted exception ", e);
         }
     }

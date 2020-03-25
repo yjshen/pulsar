@@ -233,12 +233,7 @@ public abstract class PulsarInternalColumn {
 
     public static Map<String, PulsarInternalColumn> getInternalFieldsMap() {
         ImmutableMap.Builder<String, PulsarInternalColumn> builder = ImmutableMap.builder();
-        getInternalFields().forEach(new Consumer<PulsarInternalColumn>() {
-            @Override
-            public void accept(PulsarInternalColumn pulsarInternalColumn) {
-                builder.put(pulsarInternalColumn.getName(), pulsarInternalColumn);
-            }
-        });
+        getInternalFields().forEach(pulsarInternalColumn -> builder.put(pulsarInternalColumn.getName(), pulsarInternalColumn));
         return builder.build();
     }
 

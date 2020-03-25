@@ -545,9 +545,7 @@ public class PersistentTopicsBase extends AdminResource {
     protected void internalCreateMissedPartitions(AsyncResponse asyncResponse) {
         getPartitionedTopicMetadataAsync(topicName, false, false).thenAccept(metadata -> {
             if (metadata != null) {
-                tryCreatePartitionsAsync(metadata.partitions).thenAccept(v -> {
-                    asyncResponse.resume(Response.noContent().build());
-                }).exceptionally(e -> {
+                tryCreatePartitionsAsync(metadata.partitions).thenAccept(v -> asyncResponse.resume(Response.noContent().build())).exceptionally(e -> {
                     log.error("[{}] Failed to create partitions for topic {}", clientAppId(), topicName);
                     resumeAsyncResponseExceptionally(asyncResponse, e);
                     return null;
@@ -953,9 +951,7 @@ public class PersistentTopicsBase extends AdminResource {
                                 asyncResponse.resume( new RestException(t));
                             }
                         }
-                        asyncResponse.resume((StreamingOutput) output -> {
-                            jsonMapper().writer().writeValue(output, partitionedManagedLedgerInfo);
-                        });
+                        asyncResponse.resume((StreamingOutput) output -> jsonMapper().writer().writeValue(output, partitionedManagedLedgerInfo));
                         return null;
                     });
                 } else {
@@ -982,9 +978,7 @@ public class PersistentTopicsBase extends AdminResource {
         pulsar().getManagedLedgerFactory().asyncGetManagedLedgerInfo(managedLedger, new ManagedLedgerInfoCallback() {
             @Override
             public void getInfoComplete(ManagedLedgerInfo info, Object ctx) {
-                asyncResponse.resume((StreamingOutput) output -> {
-                    jsonMapper().writer().writeValue(output, info);
-                });
+                asyncResponse.resume((StreamingOutput) output -> jsonMapper().writer().writeValue(output, info));
             }
 
             @Override
@@ -1872,13 +1866,9 @@ public class PersistentTopicsBase extends AdminResource {
             data.writeBytes(uncompressedPayload);
             uncompressedPayload.release();
 
-            StreamingOutput stream = new StreamingOutput() {
-
-                @Override
-                public void write(OutputStream output) throws IOException, WebApplicationException {
-                    output.write(data.array(), data.arrayOffset(), data.readableBytes());
-                    data.release();
-                }
+            StreamingOutput stream = output -> {
+                output.write(data.array(), data.arrayOffset(), data.readableBytes());
+                data.release();
             };
 
             return responseBuilder.entity(stream).build();
